@@ -173,7 +173,7 @@ export const proxy = withAuth({
 export default proxy
 
 export const config = {
-  matcher: ["/leagues/:path*", "/participants/:path*", /* ... */],
+  matcher: ["/leagues/:path*", "/participants/:path*" /* ... */],
 }
 ```
 
@@ -184,11 +184,11 @@ export const config = {
 
 ### Route Groups
 
-| Group | Layout | Schutz |
-|---|---|---|
-| `(public)` | kein Auth-Check | Login-Seite |
-| `(app)` | `getAuthSession()` → `redirect("/login")` | alle normalen Seiten |
-| `(app)/admin` | zusätzlich Rollen-Check | nur ADMIN |
+| Group         | Layout                                    | Schutz               |
+| ------------- | ----------------------------------------- | -------------------- |
+| `(public)`    | kein Auth-Check                           | Login-Seite          |
+| `(app)`       | `getAuthSession()` → `redirect("/login")` | alle normalen Seiten |
+| `(app)/admin` | zusätzlich Rollen-Check                   | nur ADMIN            |
 
 ### `(app)/layout.tsx` – Auth-Guard
 
@@ -218,6 +218,7 @@ if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung" }
 ### `src/lib/startup.ts` – Erstinitialisierung
 
 Wird vom Root-Layout bei jedem Request aufgerufen, führt aber nur einmal pro Prozess etwas aus:
+
 1. Standard-Disziplinen anlegen (LP, LG, LPA, LGA) – falls noch nicht vorhanden
 2. Admin-Account anlegen aus `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` – falls kein Admin existiert
 
@@ -227,11 +228,11 @@ Wird vom Root-Layout bei jedem Request aufgerufen, führt aber nur einmal pro Pr
 
 Jedes Feature-Modul (`lib/<feature>/`) folgt diesem Muster:
 
-| Datei | Inhalt |
-|---|---|
-| `actions.ts` | Server Actions (Auth → Validierung → DB) |
-| `queries.ts` | Reine DB-Lesefunktionen mit `userId`-Filter |
-| `types.ts` | Feature-spezifische TypeScript-Typen |
+| Datei           | Inhalt                                                |
+| --------------- | ----------------------------------------------------- |
+| `actions.ts`    | Server Actions (Auth → Validierung → DB)              |
+| `queries.ts`    | Reine DB-Lesefunktionen mit `userId`-Filter           |
+| `types.ts`      | Feature-spezifische TypeScript-Typen                  |
 | `calculate*.ts` | Reine Berechnungsfunktionen (keine DB, testpflichtig) |
 
 **Grössenregel:** Datei > 200 Zeilen → splitten in `actions/` oder `queries/` Unterordner mit Barrel-Export.

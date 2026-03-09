@@ -20,17 +20,17 @@ Verbindlich gleichrangig mit `docs/technical.md`.
 
 ## Benennungsregeln
 
-| Was | Konvention | Beispiel |
-|---|---|---|
-| Dateien (Komponenten) | PascalCase, englisch | `MatchResult.tsx` |
-| Dateien (Logik/Utils) | camelCase | `calculateRingteiler.ts` |
-| React-Komponenten | PascalCase, englisch | `function MatchResult()` |
-| Funktionen & Variablen | camelCase | `const bestTeiler` |
-| Konstanten (global) | SCREAMING_SNAKE_CASE | `const MAX_SHOTS = 10` |
-| Prisma-Modelle | PascalCase | `model League` |
-| Enum-Werte | SCREAMING_SNAKE_CASE, **englisch** | `WHOLE`, `WITHDRAWN` |
-| TypeScript-Interfaces | PascalCase, kein `I`-Präfix | `interface MatchData` |
-| Routen / URL-Segmente | lowercase-kebab-case, englisch | `/leagues/new` |
+| Was                    | Konvention                         | Beispiel                 |
+| ---------------------- | ---------------------------------- | ------------------------ |
+| Dateien (Komponenten)  | PascalCase, englisch               | `MatchResult.tsx`        |
+| Dateien (Logik/Utils)  | camelCase                          | `calculateRingteiler.ts` |
+| React-Komponenten      | PascalCase, englisch               | `function MatchResult()` |
+| Funktionen & Variablen | camelCase                          | `const bestTeiler`       |
+| Konstanten (global)    | SCREAMING_SNAKE_CASE               | `const MAX_SHOTS = 10`   |
+| Prisma-Modelle         | PascalCase                         | `model League`           |
+| Enum-Werte             | SCREAMING_SNAKE_CASE, **englisch** | `WHOLE`, `WITHDRAWN`     |
+| TypeScript-Interfaces  | PascalCase, kein `I`-Präfix        | `interface MatchData`    |
+| Routen / URL-Segmente  | lowercase-kebab-case, englisch     | `/leagues/new`           |
 
 ---
 
@@ -39,12 +39,14 @@ Verbindlich gleichrangig mit `docs/technical.md`.
 Alle Enum-Werte sind **englisch** und **SCREAMING_SNAKE_CASE**.
 
 ### Wertungsart (Disziplin)
+
 ```
 WHOLE      – Ganzringe
 DECIMAL    – Zehntelringe
 ```
 
 ### Liga-Status
+
 ```
 ACTIVE
 COMPLETED
@@ -52,27 +54,32 @@ ARCHIVED
 ```
 
 ### Teilnehmer-Status (in einer Liga)
+
 ```
 ACTIVE
 WITHDRAWN   – zurückgezogen
 ```
 
 ### Paarung-Status (Gruppenphase)
+
 ```
 PENDING     – noch nicht ausgetragen
 COMPLETED   – Ergebnis eingetragen
 BYE         – Freilos (kampfloser Sieg bei ungerader Teilnehmerzahl)
 WALKOVER    – Kampflos-Sieg (Gegner unangekündigt nicht erschienen)
 ```
+
 Hinweis: Playoff-Einzel-Duelle haben kein eigenes Status-Enum, sondern `isCompleted: Boolean`.
 
 ### Runde (Gruppenphase)
+
 ```
 FIRST_LEG   – Hinrunde
 SECOND_LEG  – Rückrunde
 ```
 
 ### Playoff-Runde
+
 ```
 QUARTER_FINAL
 SEMI_FINAL
@@ -80,12 +87,14 @@ FINAL
 ```
 
 ### Nutzer-Rolle
+
 ```
 ADMIN
 USER
 ```
 
 ### Ergebnis-Importquelle
+
 ```
 MANUAL
 URL
@@ -163,6 +172,7 @@ z.number({ invalid_type_error: "Muss eine Zahl sein" })
 ```
 
 `z.enum()` erwartet `as const`:
+
 ```typescript
 z.enum(["WHOLE", "DECIMAL"] as const)
 ```
@@ -265,7 +275,7 @@ export async function createMatchResult(
 // RICHTIG
 const matches = await db.match.findMany({
   where: {
-    userId: session.user.id,  // Datenisolation
+    userId: session.user.id, // Datenisolation
     leagueId,
   },
   orderBy: { createdAt: "desc" },
@@ -293,6 +303,7 @@ const ringteiler = maxRings - totalRings + bestTeiler
 ```
 
 **Kommentare sind Pflicht bei:**
+
 - Auth-Checks und `userId`-Filtern
 - Nicht-offensichtlicher Geschäftslogik (Ringteiler-Berechnung, Rückzug-Logik, Playoff-Seeding)
 - Workarounds oder bewussten Vereinfachungen (`// TODO: ...` mit Begründung)
@@ -340,6 +351,7 @@ try { ... } catch (e) {}
 ## Testing
 
 ### Framework
+
 - **Vitest** – Testdateien neben dem zu testenden Code: `calculateRingteiler.test.ts` neben `calculateRingteiler.ts`
 
 ### Was wird getestet (Pflicht)
@@ -362,6 +374,7 @@ try { ... } catch (e) {}
    - Auth-Guards, Fehlerpfade, erwartete Fehlermeldungen
 
 ### Was wird nicht getestet
+
 - React-Komponenten auf reiner Presentational-Ebene
 - Next.js Routing und Middleware
 - Volle Prisma-Integrationspfade ohne dedizierte Test-DB
@@ -382,14 +395,13 @@ describe("calculateRingteiler", () => {
   })
 
   it("niedrigerer Ringteiler gewinnt", () => {
-    expect(calculateRingteiler(96, 3.7, 100)).toBeLessThan(
-      calculateRingteiler(96, 4.2, 100)
-    )
+    expect(calculateRingteiler(96, 3.7, 100)).toBeLessThan(calculateRingteiler(96, 4.2, 100))
   })
 })
 ```
 
 ### Testabdeckung
+
 - Kein Prozentziel – Tests sollen sinnvoll sein, nicht vollständig
 - Faustregel: jede Funktion in `lib/` mit Berechnung oder Entscheidungslogik bekommt Tests
 - Tests müssen **vor dem Commit grün sein**

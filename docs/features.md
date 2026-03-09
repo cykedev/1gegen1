@@ -4,12 +4,12 @@
 
 ## Rollen & Berechtigungen
 
-| Rolle | Berechtigungen |
-|---|---|
-| Administrator | Vollzugriff: Spieler anlegen, Spielplan, Ergebnisse, Liga abschliessen |
-| Schiedsrichter | Ergebnisse eintragen für zugewiesene Paarungen |
-| Teilnehmer | Eigene Ergebnisse und Spielplan einsehen |
-| Zuschauer | Ligatabelle und Ergebnisse (read-only) |
+| Rolle          | Berechtigungen                                                         |
+| -------------- | ---------------------------------------------------------------------- |
+| Administrator  | Vollzugriff: Spieler anlegen, Spielplan, Ergebnisse, Liga abschliessen |
+| Schiedsrichter | Ergebnisse eintragen für zugewiesene Paarungen                         |
+| Teilnehmer     | Eigene Ergebnisse und Spielplan einsehen                               |
+| Zuschauer      | Ligatabelle und Ergebnisse (read-only)                                 |
 
 ---
 
@@ -19,12 +19,12 @@
 - Parameter je Disziplin: Name, Wertungsart (Ganz- / Zehntelringe), Max. Ringe/Schuss, Schiessabende
 - Vorinstallierte Standarddisziplinen:
 
-| Kürzel | Name | Wertungsart |
-|---|---|---|
-| LP | Luftpistole | Ganzringe |
-| LG | Luftgewehr | Ganzringe |
-| LPA | Luftpistole Auflage | Zehntelringe |
-| LGA | Luftgewehr Auflage | Zehntelringe |
+| Kürzel | Name                | Wertungsart  |
+| ------ | ------------------- | ------------ |
+| LP     | Luftpistole         | Ganzringe    |
+| LG     | Luftgewehr          | Ganzringe    |
+| LPA    | Luftpistole Auflage | Zehntelringe |
+| LGA    | Luftgewehr Auflage  | Zehntelringe |
 
 - Schiessabende werden je Liga beim Anlegen konfiguriert
 - Admin: Disziplinen anlegen, bearbeiten; löschen nur ohne Ligaergebnisse
@@ -47,11 +47,11 @@ Beispiel Zehntelringe (Max. 109): A: 104,5 Ringe, Teiler 2,1 → RT 6,6 | B: 105
 
 ## Punktevergabe (Gruppenphase)
 
-| Ergebnis | Sieger | Verlierer |
-|---|---|---|
-| Sieg | 2 Punkte | 0 Punkte |
-| Kampflos-Sieg | 2 Punkte | 0 Punkte |
-| Unentschieden | 1 Punkt | 1 Punkt |
+| Ergebnis      | Sieger   | Verlierer |
+| ------------- | -------- | --------- |
+| Sieg          | 2 Punkte | 0 Punkte  |
+| Kampflos-Sieg | 2 Punkte | 0 Punkte  |
+| Unentschieden | 1 Punkt  | 1 Punkt   |
 
 ### Unentschieden-Auflösung
 
@@ -89,6 +89,7 @@ Identischer Ringteiler wird in dieser Reihenfolge aufgelöst:
 - Alle Duelle einer Runde bis Stichtag abschliessen
 
 ### Heimrecht
+
 - Zuerst genannte Person ist verantwortlich für Terminabsprache
 - Mehrere Duelle an einem Abend möglich
 - **Kein Vorschießen** – beide Schützen müssen nebeneinander am Stand antreten
@@ -106,9 +107,9 @@ Identischer Ringteiler wird in dieser Reihenfolge aufgelöst:
 
 ### Validierungsregeln (clientseitig, ungültige Felder rot, Speichern blockiert)
 
-| Wertungsart | Gültige Einzelwerte |
-|---|---|
-| Ganzringe | 0–10, ganzzahlig |
+| Wertungsart  | Gültige Einzelwerte                                      |
+| ------------ | -------------------------------------------------------- |
+| Ganzringe    | 0–10, ganzzahlig                                         |
 | Zehntelringe | 0,0 oder 1,0–10,9 (eine Dezimalstelle; 0,1–0,9 ungültig) |
 
 - Seriensumme ≤ Schussanzahl × Max.Ringe/Schuss
@@ -132,6 +133,7 @@ Identischer Ringteiler wird in dieser Reihenfolge aufgelöst:
 ## Tabelle & Rangliste
 
 Sortierung absteigend:
+
 1. Punkte
 2. Direkter Vergleich (bei Punktgleichstand)
 3. Bestes individuelles Ergebnis (niedrigster Ringteiler aus allen Gruppenduellen)
@@ -145,10 +147,10 @@ Zurückgezogene Teilnehmer → Tabellenende mit Vermerk
 
 ### Qualifikation
 
-| Anmeldungen | Qualifikanten | Einstieg |
-|---|---|---|
-| 4–7 | 4 beste | Halbfinale |
-| 8+ | 8 beste | Viertelfinale |
+| Anmeldungen | Qualifikanten | Einstieg      |
+| ----------- | ------------- | ------------- |
+| 4–7         | 4 beste       | Halbfinale    |
+| 8+          | 8 beste       | Viertelfinale |
 
 Viertelfinale-Paarung: 1 vs. 8 | 2 vs. 7 | 3 vs. 6 | 4 vs. 5
 Halbfinale: bester verbleibender Gruppenplatz vs. schlechtester usw.
@@ -164,14 +166,14 @@ Halbfinale: bester verbleibender Gruppenplatz vs. schlechtester usw.
 
 Alle Disziplinen am selben Finalabend, separat gewertet.
 
-| Regel | Wert |
-|---|---|
-| Einrichtungszeit | 3 Minuten |
-| Probeschuss | Keiner |
-| Ansage | Jeder Schuss einzeln |
-| Zeit pro Schuss | 75 Sekunden |
-| Wertung | Immer gemäss Disziplin-Definition (Ganzringe oder Zehntelringe + Teiler) |
-| Gleichstand | Schuss für Schuss bis klares Ergebnis |
+| Regel            | Wert                                                                     |
+| ---------------- | ------------------------------------------------------------------------ |
+| Einrichtungszeit | 3 Minuten                                                                |
+| Probeschuss      | Keiner                                                                   |
+| Ansage           | Jeder Schuss einzeln                                                     |
+| Zeit pro Schuss  | 75 Sekunden                                                              |
+| Wertung          | Immer gemäss Disziplin-Definition (Ganzringe oder Zehntelringe + Teiler) |
+| Gleichstand      | Schuss für Schuss bis klares Ergebnis                                    |
 
 - Finale-Modus separat im System abbilden
 - Ergebnisse separat speichern und visualisieren
@@ -202,6 +204,7 @@ Alle Disziplinen am selben Finalabend, separat gewertet.
 ### Archivieren statt Löschen
 
 Gilt für alle Datenobjekte mit abhängigen Daten:
+
 - Disziplinen mit Ligaergebnissen → archivieren
 - Ligen mit Duell-Ergebnissen → archivieren
 - Archivierte Objekte: nicht mehr in Auswahlfeldern; historische Daten vollständig abrufbar

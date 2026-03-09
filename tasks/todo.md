@@ -11,6 +11,7 @@
 ## Abgeschlossen
 
 ### [2026-03-09] Projektinitialisierung
+
 - [x] Anforderungsdokument (SRS v1.5) analysiert
 - [x] CLAUDE.md erstellt (slim, orchestrierungsfokussiert)
 - [x] docs/features.md – funktionale Anforderungen
@@ -23,6 +24,7 @@
 **Review:** Projektstruktur aufgesetzt. Nächster Schritt: Tech Stack initialisieren (Next.js, Prisma, shadcn/ui) und Datenbankschema entwerfen.
 
 ### [2026-03-09] Tech Stack Setup
+
 - [x] package.json, tsconfig.json, next.config.ts, prisma.config.ts
 - [x] eslint.config.mjs, .prettierrc, vitest.config.ts, postcss.config.mjs
 - [x] .gitignore, .env.example, components.json

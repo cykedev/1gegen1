@@ -7,13 +7,14 @@
 3. `tasks/todo.md` prüfen – wo war die letzte Session?
 
 ## Projektkontext
+
 Vereinsinterne Liga-Verwaltungs-App für 1-gegen-1 Schützenwettkämpfe.
 → Anforderungen:
-	→ Features: `docs/features.md`
-	→ Architektur: `docs/architecture.md`
-	→ Technisch: `docs/technical.md`
-	→ Datenmodell: `docs/data-model.md`
-	→ Code Conventions: `docs/code-conventions.md`
+→ Features: `docs/features.md`
+→ Architektur: `docs/architecture.md`
+→ Technisch: `docs/technical.md`
+→ Datenmodell: `docs/data-model.md`
+→ Code Conventions: `docs/code-conventions.md`
 → Offene Fragen: `docs/open-issues.md`
 → Aufgaben: `tasks/todo.md`
 → Lernlog: `tasks/lessons.md`
@@ -23,32 +24,38 @@ Vereinsinterne Liga-Verwaltungs-App für 1-gegen-1 Schützenwettkämpfe.
 ## Workflow
 
 ### 1. Plan zuerst
+
 - Bei jeder nicht-trivialen Aufgabe (≥3 Schritte / Architektur-Entscheidung): Planmodus aktivieren
 - Plan nach `tasks/todo.md` schreiben mit abhakbaren Items, vor Implementierung kurz bestätigen lassen
 - Bei unerwartetem Verhalten: sofort stoppen, neu planen – nicht weiter drücken
 - Planmodus auch für Verifikation nutzen, nicht nur für Entwicklung
 
 ### 2. Subagenten einsetzen
+
 - Exploration, Recherche und parallele Analyse an Subagenten auslagern
 - Hauptkontext sauber halten – ein Thema pro Subagent
 - Bei komplexen Problemen: mehr Compute via Subagenten
 
 ### 3. Selbst-Verbesserung
+
 - Nach jeder Korrektur durch den Nutzer: Muster in `tasks/lessons.md` festhalten
 - Regeln ableiten, die denselben Fehler verhindern
 - Zu Sessionbeginn relevante Lessons lesen
 
 ### 4. Verifikation vor „Done"
+
 - Aufgabe erst abschliessen, wenn Korrektheit nachweisbar ist
 - Tests laufen lassen, Logs prüfen, Verhalten demonstrieren
 - Frage stellen: „Würde ein Senior Engineer das so abnicken?"
 
 ### 5. Eleganz einfordern
+
 - Bei nicht-trivialen Änderungen: kurz pausieren und fragen „Gibt es einen eleganteren Weg?"
 - Hacky Lösung erkannt? → „Implementiere die elegante Lösung mit allem Wissen, das ich jetzt habe"
 - Einfache, offensichtliche Fixes: nicht überentwickeln
 
 ### 6. Bugs autonom lösen
+
 - Fehlerbericht erhalten → einfach lösen, nicht nachfragen
 - Logs, Errors, fehlschlagende Tests sind Hinweise – auflösen, nicht umgehen
 - Kein Kontextwechsel für den Nutzer nötig
@@ -84,24 +91,25 @@ Bei Implementierungen immer zuerst treffsicher als Vorlage konsultieren:
 **Lokal:** `/Users/christian/repos/treffsicher` (bevorzugt — kein Netzwerk-Lookup)
 **GitHub:** https://github.com/cykedev/treffsicher
 
-| Datei | Referenz für |
-|---|---|
-| `src/lib/auth.ts` | NextAuth authOptions (Credentials Provider, JWT, Session) |
-| `src/lib/db.ts` | Prisma Client Singleton (adapter-pg, Prisma 7) |
-| `src/lib/startup.ts` | runStartup() – erster App-Start, Admin + System-Disziplinen |
-| `src/lib/auth-helpers.ts` | getAuthSession() |
-| `src/lib/auth-rate-limit/` | Login-Rate-Limiting (In-Memory-Buckets) |
-| `src/proxy.ts` | Edge-Auth via withAuth (proxy.ts = middleware.ts in Next.js 16) |
-| `src/app/api/auth/[...nextauth]/route.ts` | NextAuth Route Handler |
-| `src/app/(app)/layout.tsx` | Layout-basierter Auth-Guard |
-| `src/lib/disciplines/` | Muster für Feature-Modul (actions + queries + types) |
-| `prisma/schema.prisma` | Prisma 7 Schema-Konventionen |
+| Datei                                     | Referenz für                                                    |
+| ----------------------------------------- | --------------------------------------------------------------- |
+| `src/lib/auth.ts`                         | NextAuth authOptions (Credentials Provider, JWT, Session)       |
+| `src/lib/db.ts`                           | Prisma Client Singleton (adapter-pg, Prisma 7)                  |
+| `src/lib/startup.ts`                      | runStartup() – erster App-Start, Admin + System-Disziplinen     |
+| `src/lib/auth-helpers.ts`                 | getAuthSession()                                                |
+| `src/lib/auth-rate-limit/`                | Login-Rate-Limiting (In-Memory-Buckets)                         |
+| `src/proxy.ts`                            | Edge-Auth via withAuth (proxy.ts = middleware.ts in Next.js 16) |
+| `src/app/api/auth/[...nextauth]/route.ts` | NextAuth Route Handler                                          |
+| `src/app/(app)/layout.tsx`                | Layout-basierter Auth-Guard                                     |
+| `src/lib/disciplines/`                    | Muster für Feature-Modul (actions + queries + types)            |
+| `prisma/schema.prisma`                    | Prisma 7 Schema-Konventionen                                    |
 
 ---
 
 ## README.md – Pflicht
 
 `README.md` muss nach jeder relevanten Änderung aktualisiert werden:
+
 - Neues Feature fertiggestellt → Projektstruktur und ggf. Konfigurationstabelle anpassen
 - Neue Umgebungsvariable → in der Konfigurationstabelle eintragen
 - Setup-Schritte ändern sich → Abschnitt „Erste Inbetriebnahme" anpassen

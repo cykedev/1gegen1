@@ -27,15 +27,16 @@ Die App läuft unter [http://localhost:3000](http://localhost:3000).
 **2. Erster Login**
 
 Beim ersten Request wird die Startup-Initialisierung ausgeführt (`src/lib/startup.ts`):
+
 - Admin-Account wird angelegt, falls noch keiner existiert
 - Standarddisziplinen werden angelegt, falls sie fehlen _(noch nicht implementiert)_
 
 Die Credentials kommen aus `docker-compose.dev.yml`:
 
-| Variable               | Wert in dev           |
-| ---------------------- | --------------------- |
-| `SEED_ADMIN_EMAIL`     | `admin@example.com`   |
-| `SEED_ADMIN_PASSWORD`  | `admin-passwort-12`   |
+| Variable              | Wert in dev         |
+| --------------------- | ------------------- |
+| `SEED_ADMIN_EMAIL`    | `admin@example.com` |
+| `SEED_ADMIN_PASSWORD` | `admin-passwort-12` |
 
 Mit diesen Daten unter [http://localhost:3000/login](http://localhost:3000/login) einloggen.
 
@@ -68,14 +69,14 @@ Keine weiteren Initialisierungsschritte nötig (ausser nach `down -v`).
 
 Der Dev-Workflow nutzt [Compose Watch](https://docs.docker.com/compose/how-tos/file-watch/) für automatische Reaktion auf Dateiänderungen:
 
-| Datei / Pfad              | Aktion         | Effekt                                                                 |
-| ------------------------- | -------------- | ---------------------------------------------------------------------- |
-| `src/**`                  | Bind-Mount HMR | Next.js Hot-Reload (kein Compose-Watch-Eintrag nötig)                  |
-| `prisma/schema.prisma`    | `restart`      | App-Container startet neu, `prisma db push` + `prisma generate` laufen |
-| `prisma/migrations/**`    | `restart`      | `migrate`-Container läuft erneut und wendet Migrationen an             |
-| `next.config.ts`          | `restart`      | App-Container startet neu                                              |
-| `package.json`            | `rebuild`      | Image neu gebaut (npm ci), Container neu gestartet                     |
-| `package-lock.json`       | `rebuild`      | Wie `package.json`                                                     |
+| Datei / Pfad           | Aktion         | Effekt                                                                 |
+| ---------------------- | -------------- | ---------------------------------------------------------------------- |
+| `src/**`               | Bind-Mount HMR | Next.js Hot-Reload (kein Compose-Watch-Eintrag nötig)                  |
+| `prisma/schema.prisma` | `restart`      | App-Container startet neu, `prisma db push` + `prisma generate` laufen |
+| `prisma/migrations/**` | `restart`      | `migrate`-Container läuft erneut und wendet Migrationen an             |
+| `next.config.ts`       | `restart`      | App-Container startet neu                                              |
+| `package.json`         | `rebuild`      | Image neu gebaut (npm ci), Container neu gestartet                     |
+| `package-lock.json`    | `rebuild`      | Wie `package.json`                                                     |
 
 ---
 
@@ -124,18 +125,18 @@ docker compose -f docker-compose.dev.yml run --rm app npm run format
 
 Alle Konfiguration erfolgt über Umgebungsvariablen. Die Vorlage liegt in `.env.example`.
 
-| Variable                                        | Beschreibung                                                                         | Beispiel                                  |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------- |
-| `DATABASE_URL`                                  | PostgreSQL Connection String                                                         | `postgresql://liga:liga@db:5432/liga`     |
-| `NEXTAUTH_SECRET`                               | Zufälliger Secret für Session-Verschlüsselung (min. 32 Zeichen)                      | `openssl rand -base64 32`                 |
-| `NEXTAUTH_URL`                                  | Öffentliche URL der App                                                              | `https://liga.example.com`                |
-| `SEED_ADMIN_EMAIL`                              | E-Mail des ersten Admin-Accounts (wird beim ersten Start angelegt)                   | `admin@example.com`                       |
-| `SEED_ADMIN_PASSWORD`                           | Passwort des ersten Admin-Accounts (min. 12 Zeichen)                                 | sicheres Passwort                         |
-| `UPLOAD_DIR`                                    | Pfad zum Upload-Verzeichnis im Container (Meyton PDFs)                               | `/app/uploads`                            |
-| `AUTH_TRUST_PROXY_HEADERS`                      | Proxy-Header für Rate-Limiting vertrauen (nur hinter Reverse Proxy auf `true` setzen) | `false`                                   |
-| `AUTH_RATE_LIMIT_MAX_BUCKETS`                   | Maximale Rate-Limit-Einträge im Speicher                                             | `10000`                                   |
-| `PRISMA_AUTO_RESOLVE_FAILED_MIGRATIONS`         | Aktiviert automatische Recovery für fehlgeschlagene Migrationen                      | `true`                                    |
-| `PRISMA_AUTO_RESOLVE_UNKNOWN_FAILED_MIGRATIONS` | Fallback für unbekannte fehlgeschlagene Migrationen (`--rolled-back`)                | `false`                                   |
+| Variable                                        | Beschreibung                                                                          | Beispiel                              |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------- |
+| `DATABASE_URL`                                  | PostgreSQL Connection String                                                          | `postgresql://liga:liga@db:5432/liga` |
+| `NEXTAUTH_SECRET`                               | Zufälliger Secret für Session-Verschlüsselung (min. 32 Zeichen)                       | `openssl rand -base64 32`             |
+| `NEXTAUTH_URL`                                  | Öffentliche URL der App                                                               | `https://liga.example.com`            |
+| `SEED_ADMIN_EMAIL`                              | E-Mail des ersten Admin-Accounts (wird beim ersten Start angelegt)                    | `admin@example.com`                   |
+| `SEED_ADMIN_PASSWORD`                           | Passwort des ersten Admin-Accounts (min. 12 Zeichen)                                  | sicheres Passwort                     |
+| `UPLOAD_DIR`                                    | Pfad zum Upload-Verzeichnis im Container (Meyton PDFs)                                | `/app/uploads`                        |
+| `AUTH_TRUST_PROXY_HEADERS`                      | Proxy-Header für Rate-Limiting vertrauen (nur hinter Reverse Proxy auf `true` setzen) | `false`                               |
+| `AUTH_RATE_LIMIT_MAX_BUCKETS`                   | Maximale Rate-Limit-Einträge im Speicher                                              | `10000`                               |
+| `PRISMA_AUTO_RESOLVE_FAILED_MIGRATIONS`         | Aktiviert automatische Recovery für fehlgeschlagene Migrationen                       | `true`                                |
+| `PRISMA_AUTO_RESOLVE_UNKNOWN_FAILED_MIGRATIONS` | Fallback für unbekannte fehlgeschlagene Migrationen (`--rolled-back`)                 | `false`                               |
 
 **Entwicklung**: Werte sind direkt in `docker-compose.dev.yml` gesetzt — keine `.env`-Datei nötig.
 
@@ -169,6 +170,7 @@ docker compose -f docker-compose.prod.yml up -d
 Erfordert eine ausgefüllte `.env`-Datei.
 
 Start-Reihenfolge der Services:
+
 1. `db` — PostgreSQL 15, persistiert in Volume `postgres_data`
 2. `migrate` — führt `prisma migrate deploy` aus (one-shot), mit optionaler Recovery
 3. `app` — Next.js Produktions-Image, startet nach erfolgreichem `migrate`
@@ -217,13 +219,13 @@ scripts/                   # Docker-Startup- und Migrations-Scripts
 
 ## Tech Stack
 
-| Bereich          | Technologie                     |
-| ---------------- | ------------------------------- |
-| Framework        | Next.js 16 (App Router)         |
-| Datenbank        | PostgreSQL 15 + Prisma 7        |
-| Auth             | NextAuth.js v4                  |
-| UI               | shadcn/ui + Tailwind CSS 4      |
-| Charts           | Recharts                        |
-| Tests            | Vitest                          |
-| Container        | Docker + Docker Compose         |
-| Hosting          | TrueNAS SCALE (self-hosted)     |
+| Bereich   | Technologie                 |
+| --------- | --------------------------- |
+| Framework | Next.js 16 (App Router)     |
+| Datenbank | PostgreSQL 15 + Prisma 7    |
+| Auth      | NextAuth.js v4              |
+| UI        | shadcn/ui + Tailwind CSS 4  |
+| Charts    | Recharts                    |
+| Tests     | Vitest                      |
+| Container | Docker + Docker Compose     |
+| Hosting   | TrueNAS SCALE (self-hosted) |

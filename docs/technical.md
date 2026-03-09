@@ -14,20 +14,20 @@
 
 ## Tech Stack (verbindlich)
 
-| Bereich | Technologie | Version |
-|---|---|---|
-| Framework | Next.js App Router | 16.x |
-| Runtime | React | 19.x |
-| Sprache | TypeScript (strict) | 5.x |
-| Datenbank | PostgreSQL | 15.x |
-| ORM | Prisma | 7.x |
-| Authentifizierung | NextAuth.js | 4.x (stabil) |
-| UI-Komponenten | shadcn/ui + Tailwind CSS | Tailwind 4.x |
-| Charts | Recharts | 2.x |
-| Tests | Vitest | aktuell |
-| Package Manager | npm | – |
-| Container | Docker + Docker Compose | – |
-| Node.js | 20 LTS | 20.x |
+| Bereich           | Technologie              | Version      |
+| ----------------- | ------------------------ | ------------ |
+| Framework         | Next.js App Router       | 16.x         |
+| Runtime           | React                    | 19.x         |
+| Sprache           | TypeScript (strict)      | 5.x          |
+| Datenbank         | PostgreSQL               | 15.x         |
+| ORM               | Prisma                   | 7.x          |
+| Authentifizierung | NextAuth.js              | 4.x (stabil) |
+| UI-Komponenten    | shadcn/ui + Tailwind CSS | Tailwind 4.x |
+| Charts            | Recharts                 | 2.x          |
+| Tests             | Vitest                   | aktuell      |
+| Package Manager   | npm                      | –            |
+| Container         | Docker + Docker Compose  | –            |
+| Node.js           | 20 LTS                   | 20.x         |
 
 ---
 
@@ -43,11 +43,11 @@
 
 ## Prisma 7 – kritische Abweichungen
 
-| Aspekt | Verhalten in Prisma 7 |
-|---|---|
-| Client-Generierung | `src/generated/prisma/` – Import via `@/generated/prisma/client` |
-| Kein `url`-Feld in `datasource db` | Stattdessen `prisma.config.ts` im Root für Migrations-CLI |
-| DB-Verbindung im App-Code | `@prisma/adapter-pg` mit `pg.Pool` |
+| Aspekt                             | Verhalten in Prisma 7                                            |
+| ---------------------------------- | ---------------------------------------------------------------- |
+| Client-Generierung                 | `src/generated/prisma/` – Import via `@/generated/prisma/client` |
+| Kein `url`-Feld in `datasource db` | Stattdessen `prisma.config.ts` im Root für Migrations-CLI        |
+| DB-Verbindung im App-Code          | `@prisma/adapter-pg` mit `pg.Pool`                               |
 
 ### Datenbankmigrationen
 
@@ -80,13 +80,13 @@
 
 ### Sprache & Benennung
 
-| Kontext | Sprache |
-|---|---|
-| UI-Texte, Fehlermeldungen, Code-Kommentare | Deutsch |
-| Komponenten, Funktionen, Dateinamen | Englisch |
-| Routen / URL-Segmente | Englisch (lowercase-kebab-case) |
-| Commit-Messages | Englisch |
-| Dokumentation | Deutsch |
+| Kontext                                    | Sprache                         |
+| ------------------------------------------ | ------------------------------- |
+| UI-Texte, Fehlermeldungen, Code-Kommentare | Deutsch                         |
+| Komponenten, Funktionen, Dateinamen        | Englisch                        |
+| Routen / URL-Segmente                      | Englisch (lowercase-kebab-case) |
+| Commit-Messages                            | Englisch                        |
+| Dokumentation                              | Deutsch                         |
 
 ---
 
