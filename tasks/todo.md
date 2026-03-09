@@ -95,3 +95,16 @@
 - [x] /check grün (Lint, Format, Test, TSC)
 
 **Review:** Liga-Feature vollständig. Admin kann Ligen anlegen, bearbeiten und löschen (nur ohne abhängige Daten). Statusübergänge bidirektional: ACTIVE ↔ COMPLETED ↔ ARCHIVED (direkt ACTIVE → ARCHIVED bleibt blockiert). Disziplin nach Erstellung unveränderlich. Stichtage optional. Nächster Schritt: Teilnehmer-Feature (inkl. Liga-Einschreibung).
+
+### [2026-03-09] Datum & Zeitzone
+
+- [x] src/lib/dateTime.ts (server-only; getDisplayTimeZone, formatDateOnly via Intl.DateTimeFormat)
+- [x] leagues/page.tsx – toLocaleDateString ersetzt durch formatDateOnly(date, tz)
+- [x] .env.example – DISPLAY_TIME_ZONE=Europe/Berlin dokumentiert
+- [x] docker-compose.dev.yml – DISPLAY_TIME_ZONE=Europe/Berlin im App-Service eingetragen
+- [x] docs/technical.md – Abschnitt «Datum & Zeitzone» ergänzt
+- [x] docs/code-conventions.md – Regel und Beispiele für formatDateOnly dokumentiert
+- [x] README.md – DISPLAY_TIME_ZONE in Konfigurationstabelle + Projektstruktur
+- [x] /check grün (Lint, Format, Test, TSC)
+
+**Review:** UTC/Timezone-Pattern von treffsicher übernommen. Alle Datumsanzeigen nutzen jetzt `formatDateOnly(date, tz)` mit expliziter IANA-Zeitzone. `toLocaleDateString` ohne Zeitzone ist verboten (würde in Docker UTC anzeigen). Nächster Schritt: Teilnehmer-Feature.

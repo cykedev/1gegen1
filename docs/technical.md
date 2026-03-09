@@ -41,6 +41,19 @@
 
 ---
 
+## Datum & Zeitzone
+
+- Die **Datenbank speichert alle Zeitstempel in UTC** (PostgreSQL-Standard, kein Exceptions)
+- Die **Anzeige-Zeitzone** ist konfigurierbar via `DISPLAY_TIME_ZONE` (IANA-Bezeichner, z.B. `Europe/Berlin`)
+- Default: `Europe/Berlin`; ungültige Werte fallen auf den Default zurück
+- Zentrale Hilfsfunktionen in **`src/lib/dateTime.ts`** (Server-only):
+  - `getDisplayTimeZone()` – liest `process.env.DISPLAY_TIME_ZONE`
+  - `formatDateOnly(date, tz)` – formatiert als `TT.MM.JJJJ` mit expliziter Zeitzone via `Intl.DateTimeFormat`
+- **`toLocaleDateString()` ohne explizite Zeitzone ist verboten** – der Server läuft in UTC (Docker), das würde im Deployment falsche Daten anzeigen
+- Datum-Inputs (`<input type="date">`) liefern `YYYY-MM-DD` → werden als UTC-Mitternacht interpretiert (per HTML-Spec korrekt, kein Offset nötig)
+
+---
+
 ## Prisma 7 – kritische Abweichungen
 
 | Aspekt                             | Verhalten in Prisma 7                                            |

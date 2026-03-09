@@ -6,20 +6,18 @@ import { getLeaguesForManagement } from "@/lib/leagues/queries"
 import { LeagueActions } from "@/components/app/leagues/LeagueActions"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { getDisplayTimeZone, formatDateOnly } from "@/lib/dateTime"
 
-function formatDate(date: Date | null): string {
+function formatDate(date: Date | null, tz: string): string {
   if (!date) return "—"
-  return new Date(date).toLocaleDateString("de-CH", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  })
+  return formatDateOnly(date, tz)
 }
 
 export default async function LeaguesPage() {
   const session = await getAuthSession()
   if (session?.user.role !== "ADMIN") redirect("/")
 
+  const tz = getDisplayTimeZone()
   const leagues = await getLeaguesForManagement()
 
   const active = leagues.filter((l) => l.status === "ACTIVE")
@@ -62,8 +60,8 @@ export default async function LeaguesPage() {
                     </span>
                   </div>
                   <div className="mt-0.5 text-xs text-muted-foreground">
-                    Hinrunde bis {formatDate(l.firstLegDeadline)} · Rückrunde bis{" "}
-                    {formatDate(l.secondLegDeadline)}
+                    Hinrunde bis {formatDate(l.firstLegDeadline, tz)} · Rückrunde bis{" "}
+                    {formatDate(l.secondLegDeadline, tz)}
                   </div>
                 </div>
                 <LeagueActions league={l} />

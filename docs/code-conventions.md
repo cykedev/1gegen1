@@ -408,6 +408,42 @@ describe("calculateRingteiler", () => {
 
 ---
 
+## Datum & Zeitzone
+
+**Regel:** `toLocaleDateString()` ohne explizite Zeitzone ist verboten. Im Docker-Container läuft der Server in UTC — ohne Zeitzone-Angabe würden Daten in der Anzeige um eine Stunde verschoben sein.
+
+**Korrekt: `formatDateOnly` aus `src/lib/dateTime.ts` verwenden**
+
+```typescript
+import { getDisplayTimeZone, formatDateOnly } from "@/lib/dateTime"
+
+// In einer Server Component (einmalig laden):
+const tz = getDisplayTimeZone()
+
+// Datum formatieren:
+formatDateOnly(league.firstLegDeadline, tz) // → "31.12.2026"
+
+// Null-safe:
+function formatDate(date: Date | null, tz: string): string {
+  if (!date) return "—"
+  return formatDateOnly(date, tz)
+}
+```
+
+**Verboten:**
+
+```typescript
+// FALSCH — nutzt Server-Zeitzone (UTC in Docker)
+date.toLocaleDateString("de-CH")
+
+// FALSCH — auch ohne Locale
+date.toLocaleDateString()
+```
+
+**`dateTime.ts` ist `server-only`** – kein Import in Client Components. Datum-Formatierung für den Client muss als String von der Server Component übergeben werden.
+
+---
+
 ## Häufige Fallstricke
 
 ### Prisma 7: Client-Import-Pfad

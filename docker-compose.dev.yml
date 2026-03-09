@@ -65,6 +65,7 @@ services:
       - AUTH_TRUST_PROXY_HEADERS=false
       - AUTH_RATE_LIMIT_MAX_BUCKETS=10000
       - SKIP_MIGRATE_DEPLOY=true
+      - DISPLAY_TIME_ZONE=Europe/Berlin
     depends_on:
       db:
         condition: service_healthy

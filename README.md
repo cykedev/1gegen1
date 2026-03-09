@@ -133,6 +133,7 @@ Alle Konfiguration erfolgt über Umgebungsvariablen. Die Vorlage liegt in `.env.
 | `SEED_ADMIN_EMAIL`                              | E-Mail des ersten Admin-Accounts (wird beim ersten Start angelegt)                    | `admin@example.com`                   |
 | `SEED_ADMIN_PASSWORD`                           | Passwort des ersten Admin-Accounts (min. 12 Zeichen)                                  | sicheres Passwort                     |
 | `UPLOAD_DIR`                                    | Pfad zum Upload-Verzeichnis im Container (Meyton PDFs)                                | `/app/uploads`                        |
+| `DISPLAY_TIME_ZONE`                             | Anzeige-Zeitzone (IANA). DB speichert immer UTC. Default: `Europe/Berlin`             | `Europe/Berlin`                       |
 | `AUTH_TRUST_PROXY_HEADERS`                      | Proxy-Header für Rate-Limiting vertrauen (nur hinter Reverse Proxy auf `true` setzen) | `false`                               |
 | `AUTH_RATE_LIMIT_MAX_BUCKETS`                   | Maximale Rate-Limit-Einträge im Speicher                                              | `10000`                               |
 | `PRISMA_AUTO_RESOLVE_FAILED_MIGRATIONS`         | Aktiviert automatische Recovery für fehlgeschlagene Migrationen                       | `true`                                |
@@ -199,6 +200,7 @@ src/
     ├── auth-helpers.ts    # getAuthSession()
     ├── startup.ts         # Erstinitialisierung (Admin + Disziplinen)
     ├── types.ts           # Shared Types (ActionResult)
+    ├── dateTime.ts        # UTC/Timezone-Helfer (getDisplayTimeZone, formatDateOnly)
     ├── auth-rate-limit/   # Login-Brute-Force-Schutz
     ├── leagues/           # Liga-Feature (actions, queries, types)
     ├── matches/           # Paarungen + Ergebnisse
