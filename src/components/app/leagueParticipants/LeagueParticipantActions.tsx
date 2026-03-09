@@ -19,11 +19,14 @@ import type { LeagueParticipantListItem } from "@/lib/leagueParticipants/types"
 
 interface Props {
   entry: LeagueParticipantListItem
+  playoffsStarted: boolean
 }
 
-export function LeagueParticipantActions({ entry }: Props) {
+export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
   const [isPending, startTransition] = useTransition()
   const fullName = `${entry.participant.firstName} ${entry.participant.lastName}`
+
+  if (playoffsStarted) return null
 
   function handleWithdraw() {
     const reason = prompt(`Begründung für Rückzug von ${fullName} (optional):`)

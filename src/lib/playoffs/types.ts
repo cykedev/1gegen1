@@ -38,6 +38,8 @@ export interface PlayoffMatchItem {
   winsB: number
   status: MatchStatus
   duels: PlayoffDuelItem[]
+  /** Korrektur und Löschen erlaubt: FINAL immer, QF/HF nur wenn Folge-Runde noch nicht angesetzt */
+  canCorrect: boolean
 }
 
 export interface PlayoffBracketData {

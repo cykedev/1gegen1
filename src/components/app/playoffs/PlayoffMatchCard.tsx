@@ -1,11 +1,11 @@
 "use client"
 
 import { useTransition } from "react"
-import { Plus, Trophy } from "lucide-react"
+import { Plus, Trash2, Trophy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { addPlayoffDuel } from "@/lib/playoffs/actions"
+import { addPlayoffDuel, deleteLastPlayoffDuel } from "@/lib/playoffs/actions"
 import type { PlayoffMatchItem } from "@/lib/playoffs/types"
 import { PlayoffDuelResultDialog } from "./PlayoffDuelResultDialog"
 
@@ -42,6 +42,9 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
   // Nächstes offenes Duell (für "Eintragen"-Button)
   const nextPendingDuel = match.duels.find((d) => !d.isCompleted)
 
+  // Letztes Duell (für Delete-Button)
+  const lastDuelId = match.duels.length > 0 ? match.duels[match.duels.length - 1].id : null
+
   // Ob "Neues Duell"-Button angezeigt werden soll
   // VF/HF: wenn kein pending Duell, Match nicht abgeschlossen und BoF noch offen
   // Finale: kein manueller "Neues Duell"-Button (SD wird automatisch nach DRAW angelegt)
@@ -53,6 +56,16 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
       const result = await addPlayoffDuel(match.id)
       if ("error" in result) {
         alert(typeof result.error === "string" ? result.error : "Fehler beim Anlegen des Duells.")
+      }
+    })
+  }
+
+  function handleDeleteDuel(duelId: string) {
+    if (!confirm("Dieses Duell wirklich löschen?")) return
+    startTransition(async () => {
+      const result = await deleteLastPlayoffDuel(duelId)
+      if ("error" in result) {
+        alert(typeof result.error === "string" ? result.error : "Fehler beim Löschen des Duells.")
       }
     })
   }
@@ -133,27 +146,53 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
                           ? `${duel.resultB.totalRings} Ringe`
                           : `RT ${(duel.resultB.ringteiler ?? 0).toFixed(1)}`}
                       </span>
-                      {isAdmin && (
-                        <PlayoffDuelResultDialog
-                          duel={duel}
-                          participantA={match.participantA}
-                          participantB={match.participantB}
-                          isCorrection={true}
-                          isFinalMatch={isFinal}
-                        />
+                      {isAdmin && match.canCorrect && (
+                        <>
+                          <PlayoffDuelResultDialog
+                            duel={duel}
+                            participantA={match.participantA}
+                            participantB={match.participantB}
+                            isCorrection={true}
+                            isFinalMatch={isFinal}
+                          />
+                          {duel.id === lastDuelId && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteDuel(duel.id)}
+                              disabled={isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </>
                   ) : (
                     <>
                       <span className="flex-1 text-center text-muted-foreground">ausstehend</span>
                       {isAdmin && duel.id === nextPendingDuel?.id && (
-                        <PlayoffDuelResultDialog
-                          duel={duel}
-                          participantA={match.participantA}
-                          participantB={match.participantB}
-                          isCorrection={false}
-                          isFinalMatch={isFinal}
-                        />
+                        <>
+                          <PlayoffDuelResultDialog
+                            duel={duel}
+                            participantA={match.participantA}
+                            participantB={match.participantB}
+                            isCorrection={false}
+                            isFinalMatch={isFinal}
+                          />
+                          {match.canCorrect && duel.id === lastDuelId && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteDuel(duel.id)}
+                              disabled={isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </>
                   )}

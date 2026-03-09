@@ -23,7 +23,7 @@
 - [x] leagues/page.tsx + schedule/page.tsx – Playoffs-Link
 - [x] /check grün (Lint, Format, 105 Tests, TSC)
 
-**Review:** Playoff-Phase vollständig. Admin kann Playoffs starten (sobald keine PENDING-Paarungen mehr und ≥4 aktive TN). Bracket-Seeding: 4–7 TN → HF (1v4, 2v3), 8+ TN → VF (1v8, 2v7, 3v6, 4v5). VF/HF Best-of-Five: Einzelduelle werden manuell angelegt und eingetragen; Nächste Runde entsteht automatisch nach Abschluss aller Matches. Finale: 1 Duell, Gleichstand (identischer RT) → automatisches Sudden-Death-Duell. Alle Links (Ligen-Übersicht, Spielplan) verweisen auf Playoffs-Seite.
+**Review:** Playoff-Phase vollständig. Admin kann Playoffs starten (sobald keine PENDING-Paarungen mehr und ≥4 aktive TN). Bracket-Seeding: 4–7 TN → HF (1v4, 2v3), 8+ TN → VF (1v8, 2v7, 3v6, 4v5). VF/HF Best-of-Five: Einzelduelle werden manuell angelegt und eingetragen. Nächste Runde wird manuell vom Admin über „Halbfinale/Finale anlegen"-Button angesetzt. Finale: 1 Duell, Gleichstand → automatisches Sudden-Death-Duell. Korrekturen: Duell-Ergebnisse korrigierbar solange Folgerunde keine Duele hat; letztes Duell löschbar. Cascade-Delete leerer Folge-Matches bei Korrektur. Spieler-Rückzug nach Playoff-Start blockiert. Spielplan-Editierung nach Playoff-Start blockiert.
 
 ---
 

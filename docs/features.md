@@ -155,29 +155,58 @@ Zurückgezogene Teilnehmer → Tabellenende mit Vermerk
 Viertelfinale-Paarung: 1 vs. 8 | 2 vs. 7 | 3 vs. 6 | 4 vs. 5
 Halbfinale: bester verbleibender Gruppenplatz vs. schlechtester usw.
 
+### Start-Voraussetzungen
+
+- Liga muss ACTIVE sein
+- Playoffs noch nicht gestartet
+- Mindestens 4 aktive (nicht zurückgezogene) Teilnehmer
+- Keine PENDING-Paarungen in der Gruppenphase
+
 ### Best-of-Five (VF & HF)
 
 - Wer zuerst 3 Einzel-Duelle gewinnt, zieht weiter
 - Pro Duell: 10 Schuss, Ring- und Teilerwertung (identisch zur Gruppenphase)
 - Duelle können an verschiedenen Abenden oder mehrere an einem Abend stattfinden
 - Kein Vorschießen
+- Admin legt jedes Duell manuell an; bis zu 5 Duelle pro Match möglich
+
+### Rundenfortschritt (manuell)
+
+- Nach Abschluss aller Matches einer Runde erscheint ein **„Halbfinale/Finale anlegen"**-Button (nur Admin)
+- Der Admin löst damit manuell das Seeding für die nächste Runde aus
+- Nächste Runde wird erst nach expliziter Bestätigung angelegt (kein Automatismus)
+- Seeding HF: Re-Seeding nach Original-Gruppenrang (beste verbleibende vs. schlechteste verbleibende)
+- Seeding Finale: erster HF-Gewinner vs. zweiter HF-Gewinner
 
 ### Finale (Sondermodus)
 
 Alle Disziplinen am selben Finalabend, separat gewertet.
 
-| Regel            | Wert                                                                     |
-| ---------------- | ------------------------------------------------------------------------ |
-| Einrichtungszeit | 3 Minuten                                                                |
-| Probeschuss      | Keiner                                                                   |
-| Ansage           | Jeder Schuss einzeln                                                     |
-| Zeit pro Schuss  | 75 Sekunden                                                              |
-| Wertung          | Immer gemäss Disziplin-Definition (Ganzringe oder Zehntelringe + Teiler) |
-| Gleichstand      | Schuss für Schuss bis klares Ergebnis                                    |
+| Regel            | Wert                                                                  |
+| ---------------- | --------------------------------------------------------------------- |
+| Einrichtungszeit | 3 Minuten                                                             |
+| Probeschuss      | Keiner                                                                |
+| Ansage           | Jeder Schuss einzeln                                                  |
+| Zeit pro Schuss  | 75 Sekunden                                                           |
+| Wertung          | Nur Gesamtringe (kein Teiler im Finale); höchste Ringzahl gewinnt     |
+| Gleichstand      | Automatisches Sudden-Death-Duell (weiteres 10-Schuss-Duell) bis Entscheid |
 
 - Finale-Modus separat im System abbilden
 - Ergebnisse separat speichern und visualisieren
 - App-Umfang: **nur Ergebniserfassung** (keine aktive Zeitnahme oder Ansage-Unterstützung)
+
+### Korrekturen & Löschungen
+
+- **`canCorrect`-Flag:** Ob Korrekturen und Duel-Löschungen für ein Match erlaubt sind
+  - Finale: immer korrigierbar
+  - VF/HF: nur korrigierbar, solange die Folge-Runde für dieses Match noch keine Duelle hat
+- **Korrektur eines Duel-Ergebnisses:** Siegstand wird neu berechnet; bereits abgeschlossene Folge-Runden-Matches ohne Duelle werden kaskadierend gelöscht
+- **Löschen des letzten Duells:** nur möglich solange `canCorrect` gilt; Siege werden entsprechend korrigiert; leere Folge-Runden-Matches werden kaskadierend gelöscht
+
+### Guards (Playoff-Start blockiert weitere Aktionen)
+
+- **Spieler-Rückzug:** Nach Playoff-Start können keine Teilnehmer mehr zurückgezogen oder Rückzüge rückgängig gemacht werden (`LeagueParticipantActions` rendert `null` wenn `playoffsStarted = true`)
+- **Spielplan-Editierung:** Nach Playoff-Start ist das Eintragen und Korrigieren von Gruppenphase-Ergebnissen gesperrt (`ScheduleView` übergibt `isAdmin = false` an `LegTable` wenn `playoffsStarted = true`)
 
 ---
 

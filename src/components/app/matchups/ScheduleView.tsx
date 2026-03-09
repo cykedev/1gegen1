@@ -10,6 +10,8 @@ interface Props {
   leagueId: string
   /** Nur ADMIN darf Ergebnisse eintragen */
   isAdmin: boolean
+  /** Keine Erfassung/Korrektur mehr möglich wenn Playoffs laufen */
+  playoffsStarted?: boolean
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -187,7 +189,13 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export function ScheduleView({ matchups, firstLegDeadline, secondLegDeadline, isAdmin }: Props) {
+export function ScheduleView({
+  matchups,
+  firstLegDeadline,
+  secondLegDeadline,
+  isAdmin,
+  playoffsStarted = false,
+}: Props) {
   if (matchups.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-muted-foreground">
@@ -211,7 +219,7 @@ export function ScheduleView({ matchups, firstLegDeadline, secondLegDeadline, is
           title="Hinrunde"
           matchups={firstLeg}
           deadline={firstLegDeadline}
-          isAdmin={isAdmin}
+          isAdmin={isAdmin && !playoffsStarted}
         />
       )}
       {secondLeg.length > 0 && (
@@ -219,7 +227,7 @@ export function ScheduleView({ matchups, firstLegDeadline, secondLegDeadline, is
           title="Rückrunde"
           matchups={secondLeg}
           deadline={secondLegDeadline}
-          isAdmin={isAdmin}
+          isAdmin={isAdmin && !playoffsStarted}
         />
       )}
     </div>

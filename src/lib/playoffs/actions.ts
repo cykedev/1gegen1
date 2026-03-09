@@ -93,6 +93,14 @@ export async function savePlayoffDuelResult(
       duelNumber: true,
       isCompleted: true,
       playoffMatchId: true,
+      results: {
+        select: {
+          participantId: true,
+          totalRings: true,
+          teiler: true,
+          ringteiler: true,
+        },
+      },
       playoffMatch: {
         select: {
           id: true,
@@ -110,13 +118,34 @@ export async function savePlayoffDuelResult(
   })
 
   if (!duel) return { error: "Duell nicht gefunden." }
-  if (duel.isCompleted) return { error: "Dieses Duell wurde bereits abgeschlossen." }
-  if (duel.playoffMatch.status === "COMPLETED") {
-    return { error: "Diese Playoff-Paarung wurde bereits abgeschlossen." }
-  }
 
+  const isCorrection = duel.isCompleted
   const match = duel.playoffMatch
   const isFinal = match.round === "FINAL"
+  const wasMatchComplete = match.status === "COMPLETED"
+
+  // Korrektur nur erlaubt wenn Folge-Runde noch keine Duelle hat
+  if (isCorrection && !isFinal) {
+    const nextRound = match.round === "QUARTER_FINAL" ? "SEMI_FINAL" : "FINAL"
+    const nextMatchWithDuels = await db.playoffMatch.findFirst({
+      where: {
+        leagueId: match.leagueId,
+        round: nextRound,
+        duels: { some: {} },
+        OR: [
+          { participantAId: match.participantAId },
+          { participantAId: match.participantBId },
+          { participantBId: match.participantAId },
+          { participantBId: match.participantBId },
+        ],
+      },
+    })
+    if (nextMatchWithDuels) {
+      return {
+        error: "Korrektur nicht möglich — in der nächsten Runde wurden bereits Duelle gespielt.",
+      }
+    }
+  }
 
   // Finale: Einzelschüsse ohne Teiler → nur Ringvergleich
   // VF/HF: Ringteiler-Berechnung + vollständiger Vergleich
@@ -139,8 +168,34 @@ export async function savePlayoffDuelResult(
       input.teilerB ?? 0
     )
   }
+
+  // Siege neu berechnen: bei Korrektur alten Outcome subtrahieren, neuen addieren
   let newWinsA = match.winsA
   let newWinsB = match.winsB
+  if (isCorrection) {
+    const oldResultA = duel.results.find((r) => r.participantId === match.participantAId)
+    const oldResultB = duel.results.find((r) => r.participantId === match.participantBId)
+    if (oldResultA && oldResultB) {
+      let oldOutcome: "A" | "B" | "DRAW"
+      if (isFinal) {
+        oldOutcome = determineFinaleRoundWinner(
+          oldResultA.totalRings.toNumber(),
+          oldResultB.totalRings.toNumber()
+        )
+      } else {
+        oldOutcome = determinePlayoffDuelWinner(
+          oldResultA.ringteiler?.toNumber() ?? 0,
+          oldResultA.totalRings.toNumber(),
+          oldResultA.teiler?.toNumber() ?? 0,
+          oldResultB.ringteiler?.toNumber() ?? 0,
+          oldResultB.totalRings.toNumber(),
+          oldResultB.teiler?.toNumber() ?? 0
+        )
+      }
+      if (oldOutcome === "A") newWinsA--
+      else if (oldOutcome === "B") newWinsB--
+    }
+  }
   if (outcome === "A") newWinsA++
   else if (outcome === "B") newWinsB++
 
@@ -214,15 +269,237 @@ export async function savePlayoffDuelResult(
     return { error: "Ergebnis konnte nicht gespeichert werden." }
   }
 
-  // Nach der Transaktion: Folge-Aktionen (nicht atomar, aber akzeptabel)
-  if (matchComplete) {
-    await handleMatchCompletion(match.id, match.leagueId, match.round)
-  } else if (outcome === "DRAW" && match.round === "FINAL") {
-    // Finale-Gleichstand → Sudden-Death-Duell anlegen
+  // Nach der Transaktion: Folge-Aktionen
+  if (outcome === "DRAW" && match.round === "FINAL" && !isCorrection) {
+    // Finale-Gleichstand bei Erst-Erfassung → Sudden-Death-Duell anlegen
     await addSuddenDeathDuel(match.id)
   }
 
+  // Wenn Korrektur ein abgeschlossenes Match wieder öffnet → leere Folge-Runden-Matches löschen
+  if (isCorrection && wasMatchComplete && !matchComplete && !isFinal) {
+    await cascadeDeleteEmptyNextRound(match)
+  }
+
   revalidatePath(`/leagues/${match.leagueId}/playoffs`)
+  return { success: true }
+}
+
+/**
+ * Löscht das letzte Duell einer Playoff-Paarung (inkl. Ergebnisse).
+ * Nur möglich solange keine Folge-Runde angesetzt wurde.
+ */
+export async function deleteLastPlayoffDuel(duelId: string): Promise<ActionResult> {
+  const session = await getAuthSession()
+  if (!session) return { error: "Nicht angemeldet." }
+  if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung." }
+
+  const duel = await db.playoffDuel.findUnique({
+    where: { id: duelId },
+    select: {
+      id: true,
+      duelNumber: true,
+      isCompleted: true,
+      playoffMatch: {
+        select: {
+          id: true,
+          round: true,
+          winsA: true,
+          winsB: true,
+          leagueId: true,
+          participantAId: true,
+          participantBId: true,
+        },
+      },
+      results: {
+        select: {
+          participantId: true,
+          totalRings: true,
+          teiler: true,
+          ringteiler: true,
+        },
+      },
+    },
+  })
+
+  if (!duel) return { error: "Duell nicht gefunden." }
+
+  const match = duel.playoffMatch
+  const isFinal = match.round === "FINAL"
+
+  // Muss das letzte Duell sein
+  const maxDuelNumber = await db.playoffDuel.aggregate({
+    where: { playoffMatchId: match.id },
+    _max: { duelNumber: true },
+  })
+  if (duel.duelNumber !== maxDuelNumber._max.duelNumber) {
+    return { error: "Nur das letzte Duell kann gelöscht werden." }
+  }
+
+  // Löschen nur erlaubt wenn Folge-Runde noch keine Duelle hat
+  if (!isFinal) {
+    const nextRound = match.round === "QUARTER_FINAL" ? "SEMI_FINAL" : "FINAL"
+    const nextMatchWithDuels = await db.playoffMatch.findFirst({
+      where: {
+        leagueId: match.leagueId,
+        round: nextRound,
+        duels: { some: {} },
+        OR: [
+          { participantAId: match.participantAId },
+          { participantAId: match.participantBId },
+          { participantBId: match.participantAId },
+          { participantBId: match.participantBId },
+        ],
+      },
+    })
+    if (nextMatchWithDuels) {
+      return {
+        error: "Löschen nicht möglich — in der nächsten Runde wurden bereits Duelle gespielt.",
+      }
+    }
+  }
+
+  // Siege-Korrektur wenn Duell bereits abgeschlossen war
+  let deltaWinsA = 0
+  let deltaWinsB = 0
+  if (duel.isCompleted) {
+    const oldResultA = duel.results.find((r) => r.participantId === match.participantAId)
+    const oldResultB = duel.results.find((r) => r.participantId === match.participantBId)
+    if (oldResultA && oldResultB) {
+      let oldOutcome: "A" | "B" | "DRAW"
+      if (isFinal) {
+        oldOutcome = determineFinaleRoundWinner(
+          oldResultA.totalRings.toNumber(),
+          oldResultB.totalRings.toNumber()
+        )
+      } else {
+        oldOutcome = determinePlayoffDuelWinner(
+          oldResultA.ringteiler?.toNumber() ?? 0,
+          oldResultA.totalRings.toNumber(),
+          oldResultA.teiler?.toNumber() ?? 0,
+          oldResultB.ringteiler?.toNumber() ?? 0,
+          oldResultB.totalRings.toNumber(),
+          oldResultB.teiler?.toNumber() ?? 0
+        )
+      }
+      if (oldOutcome === "A") deltaWinsA = -1
+      else if (oldOutcome === "B") deltaWinsB = -1
+    }
+  }
+
+  await db.$transaction(async (tx) => {
+    await tx.playoffDuelResult.deleteMany({ where: { duelId: duel.id } })
+    await tx.playoffDuel.delete({ where: { id: duel.id } })
+    await tx.playoffMatch.update({
+      where: { id: match.id },
+      data: {
+        winsA: match.winsA + deltaWinsA,
+        winsB: match.winsB + deltaWinsB,
+        status: "PENDING",
+      },
+    })
+
+    // Leere Folge-Runden-Matches kaskadenweise löschen
+    if (!isFinal) {
+      const nextRound = match.round === "QUARTER_FINAL" ? "SEMI_FINAL" : "FINAL"
+      const emptyNextMatches = await tx.playoffMatch.findMany({
+        where: {
+          leagueId: match.leagueId,
+          round: nextRound,
+          duels: { none: {} },
+          OR: [
+            { participantAId: match.participantAId },
+            { participantAId: match.participantBId },
+            { participantBId: match.participantAId },
+            { participantBId: match.participantBId },
+          ],
+        },
+        select: { id: true },
+      })
+      for (const m of emptyNextMatches) {
+        await tx.playoffMatch.delete({ where: { id: m.id } })
+      }
+    }
+  })
+
+  revalidatePath(`/leagues/${match.leagueId}/playoffs`)
+  return { success: true }
+}
+
+/**
+ * Löscht leere Folge-Runden-Matches (ohne Duelle) nach Ergebnis-Revert.
+ */
+async function cascadeDeleteEmptyNextRound(match: {
+  round: "QUARTER_FINAL" | "SEMI_FINAL" | "FINAL"
+  leagueId: string
+  participantAId: string
+  participantBId: string
+}): Promise<void> {
+  if (match.round === "FINAL") return
+  const nextRound = match.round === "QUARTER_FINAL" ? "SEMI_FINAL" : "FINAL"
+  const emptyNextMatches = await db.playoffMatch.findMany({
+    where: {
+      leagueId: match.leagueId,
+      round: nextRound,
+      duels: { none: {} },
+      OR: [
+        { participantAId: match.participantAId },
+        { participantAId: match.participantBId },
+        { participantBId: match.participantAId },
+        { participantBId: match.participantBId },
+      ],
+    },
+    select: { id: true },
+  })
+  for (const m of emptyNextMatches) {
+    await db.playoffMatch.delete({ where: { id: m.id } })
+  }
+}
+
+/**
+ * Setzt manuell die nächste Runde an, wenn alle Matches der aktuellen Runde abgeschlossen sind.
+ * Nur Admin; ersetzt das frühere automatische Seeding.
+ */
+export async function advanceRound(leagueId: string): Promise<ActionResult> {
+  const session = await getAuthSession()
+  if (!session) return { error: "Nicht angemeldet." }
+  if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung." }
+
+  const matches = await db.playoffMatch.findMany({
+    where: { leagueId },
+    select: {
+      id: true,
+      round: true,
+      status: true,
+      winsA: true,
+      winsB: true,
+      participantAId: true,
+      participantBId: true,
+    },
+  })
+
+  if (matches.length === 0) return { error: "Keine Playoffs gefunden." }
+
+  // Höchste Runde ohne Folge-Runde ermitteln
+  const hasSF = matches.some((m) => m.round === "SEMI_FINAL")
+  const hasFinal = matches.some((m) => m.round === "FINAL")
+
+  let roundToAdvance: "QUARTER_FINAL" | "SEMI_FINAL" | null = null
+  if (hasSF && !hasFinal) {
+    roundToAdvance = "SEMI_FINAL"
+  } else if (!hasSF) {
+    roundToAdvance = "QUARTER_FINAL"
+  }
+
+  if (!roundToAdvance) return { error: "Keine Runde zum Anlegen der nächsten Runde." }
+
+  const currentRoundMatches = matches.filter((m) => m.round === roundToAdvance)
+  if (!currentRoundMatches.every((m) => m.status === "COMPLETED")) {
+    return { error: "Noch nicht alle Matches der aktuellen Runde abgeschlossen." }
+  }
+
+  await handleMatchCompletion(currentRoundMatches[0].id, leagueId, roundToAdvance)
+
+  revalidatePath(`/leagues/${leagueId}/playoffs`)
   return { success: true }
 }
 

@@ -98,6 +98,7 @@ function mapMatchItem(raw: {
     duels: raw.duels.map((d) =>
       mapDuelItem(d, raw.participantA.id, raw.participantB.id, raw.round)
     ),
+    canCorrect: false, // wird in getPlayoffBracket korrekt gesetzt
   }
 }
 
@@ -134,7 +135,29 @@ export async function getPlayoffBracket(leagueId: string): Promise<PlayoffBracke
     orderBy: { createdAt: "asc" },
   })
 
-  const mapped = matches.map(mapMatchItem)
+  const base = matches.map(mapMatchItem)
+
+  // canCorrect: FINAL immer; QF/HF nur wenn Folge-Runde noch keine Duelle hat
+  const sfIdsWithDuels = new Set(
+    base
+      .filter((m) => m.round === "SEMI_FINAL" && m.duels.length > 0)
+      .flatMap((m) => [m.participantA.id, m.participantB.id])
+  )
+  const finalIdsWithDuels = new Set(
+    base
+      .filter((m) => m.round === "FINAL" && m.duels.length > 0)
+      .flatMap((m) => [m.participantA.id, m.participantB.id])
+  )
+
+  const mapped = base.map((m) => ({
+    ...m,
+    canCorrect:
+      m.round === "FINAL"
+        ? true
+        : m.round === "QUARTER_FINAL"
+          ? !sfIdsWithDuels.has(m.participantA.id) && !sfIdsWithDuels.has(m.participantB.id)
+          : !finalIdsWithDuels.has(m.participantA.id) && !finalIdsWithDuels.has(m.participantB.id),
+  }))
 
   return {
     leagueId,
@@ -142,4 +165,9 @@ export async function getPlayoffBracket(leagueId: string): Promise<PlayoffBracke
     semiFinals: mapped.filter((m) => m.round === "SEMI_FINAL"),
     final: mapped.find((m) => m.round === "FINAL") ?? null,
   }
+}
+
+export async function hasPlayoffsStarted(leagueId: string): Promise<boolean> {
+  const count = await db.playoffMatch.count({ where: { leagueId } })
+  return count > 0
 }

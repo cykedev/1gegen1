@@ -4,6 +4,7 @@ import { ArrowLeft, BarChart2, Trophy, Users } from "lucide-react"
 import { getAuthSession } from "@/lib/auth-helpers"
 import { getLeagueById } from "@/lib/leagues/queries"
 import { getMatchupsForLeague, getScheduleStatus } from "@/lib/matchups/queries"
+import { hasPlayoffsStarted } from "@/lib/playoffs/queries"
 import { GenerateScheduleButton } from "@/components/app/matchups/GenerateScheduleButton"
 import { ScheduleView } from "@/components/app/matchups/ScheduleView"
 import { Button } from "@/components/ui/button"
@@ -15,11 +16,12 @@ interface Props {
 export default async function LeagueSchedulePage({ params }: Props) {
   const { id } = await params
 
-  const [session, league, matchups, scheduleStatus] = await Promise.all([
+  const [session, league, matchups, scheduleStatus, playoffsStarted] = await Promise.all([
     getAuthSession(),
     getLeagueById(id),
     getMatchupsForLeague(id),
     getScheduleStatus(id),
+    hasPlayoffsStarted(id),
   ])
 
   if (!session) redirect("/login")
@@ -87,6 +89,7 @@ export default async function LeagueSchedulePage({ params }: Props) {
         secondLegDeadline={league.secondLegDeadline}
         leagueId={id}
         isAdmin={isAdmin}
+        playoffsStarted={playoffsStarted}
       />
     </div>
   )

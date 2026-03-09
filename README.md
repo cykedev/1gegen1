@@ -29,7 +29,7 @@ Die App läuft unter [http://localhost:3000](http://localhost:3000).
 Beim ersten Request wird die Startup-Initialisierung ausgeführt (`src/lib/startup.ts`):
 
 - Admin-Account wird angelegt, falls noch keiner existiert
-- Standarddisziplinen werden angelegt, falls sie fehlen _(noch nicht implementiert)_
+- Standarddisziplinen werden angelegt, falls sie fehlen
 
 Die Credentials kommen aus `docker-compose.dev.yml`:
 
@@ -205,6 +205,9 @@ src/
     ├── leagues/           # Liga-Feature (actions, queries, types)
     ├── leagueParticipants/# Einschreiben + Rückzug
     ├── matchups/          # Spielplan-Generierung (Round-Robin, Circle-Method)
+    ├── results/           # Ergebniserfassung (Ringteiler-Berechnung, Outcome)
+    ├── standings/         # Tabellenberechnung (Punkte, direkter Vergleich, RT)
+    ├── playoffs/          # Playoff-Phase (Bracket, Best-of-Five, Finale)
     ├── participants/      # Teilnehmerverwaltung
     ├── disciplines/       # Disziplinverwaltung
     └── users/             # Nutzerverwaltung (Admin)

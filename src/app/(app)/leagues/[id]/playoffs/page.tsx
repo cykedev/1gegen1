@@ -8,6 +8,7 @@ import { getStandingsForLeague } from "@/lib/standings/queries"
 import { db } from "@/lib/db"
 import { PlayoffBracket } from "@/components/app/playoffs/PlayoffBracket"
 import { StartPlayoffsButton } from "@/components/app/playoffs/StartPlayoffsButton"
+import { AdvanceRoundButton } from "@/components/app/playoffs/AdvanceRoundButton"
 import { Button } from "@/components/ui/button"
 
 interface Props {
@@ -32,6 +33,19 @@ export default async function LeaguePlayoffsPage({ params }: Props) {
   const isAdmin = session.user.role === "ADMIN"
   const playoffsStarted =
     bracket.quarterFinals.length + bracket.semiFinals.length > 0 || bracket.final !== null
+
+  // Prüfen ob nächste Runde manuell angelegt werden kann
+  const allQfComplete =
+    bracket.quarterFinals.length > 0 && bracket.quarterFinals.every((m) => m.status === "COMPLETED")
+  const allSfComplete =
+    bracket.semiFinals.length > 0 && bracket.semiFinals.every((m) => m.status === "COMPLETED")
+
+  let advanceLabel: string | null = null
+  if (allQfComplete && bracket.semiFinals.length === 0) {
+    advanceLabel = "Halbfinale anlegen"
+  } else if (allSfComplete && bracket.final === null) {
+    advanceLabel = "Finale anlegen"
+  }
 
   const activeCount = standings.filter((r) => !r.withdrawn).length
   const canStart = activeCount >= 4 && pendingCount === 0
@@ -100,6 +114,16 @@ export default async function LeaguePlayoffsPage({ params }: Props) {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Nächste Runde anlegen (nur Admin, wenn aktuelle Runde abgeschlossen) */}
+      {isAdmin && advanceLabel && (
+        <div className="flex items-center justify-between rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">
+            Alle Matches der aktuellen Runde sind abgeschlossen.
+          </p>
+          <AdvanceRoundButton leagueId={id} label={advanceLabel} />
         </div>
       )}
 

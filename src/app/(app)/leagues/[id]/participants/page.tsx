@@ -6,6 +6,7 @@ import { getLeagueById } from "@/lib/leagues/queries"
 import { getLeagueParticipants } from "@/lib/leagueParticipants/queries"
 import { getParticipantsNotInLeague } from "@/lib/participants/queries"
 import { enrollParticipant } from "@/lib/leagueParticipants/actions"
+import { hasPlayoffsStarted } from "@/lib/playoffs/queries"
 import { EnrollParticipantForm } from "@/components/app/leagueParticipants/EnrollParticipantForm"
 import { LeagueParticipantActions } from "@/components/app/leagueParticipants/LeagueParticipantActions"
 import { Badge } from "@/components/ui/badge"
@@ -19,11 +20,12 @@ interface Props {
 export default async function LeagueParticipantsPage({ params }: Props) {
   const { id } = await params
 
-  const [session, league, leagueParticipants, available] = await Promise.all([
+  const [session, league, leagueParticipants, available, playoffsStarted] = await Promise.all([
     getAuthSession(),
     getLeagueById(id),
     getLeagueParticipants(id),
     getParticipantsNotInLeague(id),
+    hasPlayoffsStarted(id),
   ])
 
   if (session?.user.role !== "ADMIN") redirect("/")
@@ -92,7 +94,7 @@ export default async function LeagueParticipantsPage({ params }: Props) {
                     </div>
                     <p className="text-xs text-muted-foreground">{lp.participant.email}</p>
                   </div>
-                  <LeagueParticipantActions entry={lp} />
+                  <LeagueParticipantActions entry={lp} playoffsStarted={playoffsStarted} />
                 </div>
               ))}
             </div>
@@ -122,7 +124,7 @@ export default async function LeagueParticipantsPage({ params }: Props) {
                     </div>
                     <p className="text-xs text-muted-foreground">{lp.participant.email}</p>
                   </div>
-                  <LeagueParticipantActions entry={lp} />
+                  <LeagueParticipantActions entry={lp} playoffsStarted={playoffsStarted} />
                 </div>
               ))}
             </div>

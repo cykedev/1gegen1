@@ -135,6 +135,11 @@ export async function withdrawParticipant(
   if (!lp) return { error: "Einschreibung nicht gefunden." }
   if (lp.status === "WITHDRAWN") return { error: "Teilnehmer ist bereits zurückgezogen." }
 
+  const playoffCount = await db.playoffMatch.count({ where: { leagueId: lp.leagueId } })
+  if (playoffCount > 0) {
+    return { error: "Rückzug nicht möglich — Playoffs haben bereits begonnen." }
+  }
+
   const parsed = WithdrawSchema.safeParse({ reason: formData.get("reason") })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
