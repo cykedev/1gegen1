@@ -1,0 +1,114 @@
+# 1-gegen-1 Liga-App – Projektanweisungen
+
+## Session-Start (immer zuerst)
+
+1. `tasks/lessons.md` lesen – Was hat zuletzt nicht funktioniert?
+2. `docs/open-issues.md` prüfen – neue offene Fragen?
+3. `tasks/todo.md` prüfen – wo war die letzte Session?
+
+## Projektkontext
+Vereinsinterne Liga-Verwaltungs-App für 1-gegen-1 Schützenwettkämpfe.
+→ Anforderungen:
+	→ Features: `docs/features.md`
+	→ Architektur: `docs/architecture.md`
+	→ Technisch: `docs/technical.md`
+	→ Datenmodell: `docs/data-model.md`
+	→ Code Conventions: `docs/code-conventions.md`
+→ Offene Fragen: `docs/open-issues.md`
+→ Aufgaben: `tasks/todo.md`
+→ Lernlog: `tasks/lessons.md`
+
+---
+
+## Workflow
+
+### 1. Plan zuerst
+- Bei jeder nicht-trivialen Aufgabe (≥3 Schritte / Architektur-Entscheidung): Planmodus aktivieren
+- Plan nach `tasks/todo.md` schreiben mit abhakbaren Items, vor Implementierung kurz bestätigen lassen
+- Bei unerwartetem Verhalten: sofort stoppen, neu planen – nicht weiter drücken
+- Planmodus auch für Verifikation nutzen, nicht nur für Entwicklung
+
+### 2. Subagenten einsetzen
+- Exploration, Recherche und parallele Analyse an Subagenten auslagern
+- Hauptkontext sauber halten – ein Thema pro Subagent
+- Bei komplexen Problemen: mehr Compute via Subagenten
+
+### 3. Selbst-Verbesserung
+- Nach jeder Korrektur durch den Nutzer: Muster in `tasks/lessons.md` festhalten
+- Regeln ableiten, die denselben Fehler verhindern
+- Zu Sessionbeginn relevante Lessons lesen
+
+### 4. Verifikation vor „Done"
+- Aufgabe erst abschliessen, wenn Korrektheit nachweisbar ist
+- Tests laufen lassen, Logs prüfen, Verhalten demonstrieren
+- Frage stellen: „Würde ein Senior Engineer das so abnicken?"
+
+### 5. Eleganz einfordern
+- Bei nicht-trivialen Änderungen: kurz pausieren und fragen „Gibt es einen eleganteren Weg?"
+- Hacky Lösung erkannt? → „Implementiere die elegante Lösung mit allem Wissen, das ich jetzt habe"
+- Einfache, offensichtliche Fixes: nicht überentwickeln
+
+### 6. Bugs autonom lösen
+- Fehlerbericht erhalten → einfach lösen, nicht nachfragen
+- Logs, Errors, fehlschlagende Tests sind Hinweise – auflösen, nicht umgehen
+- Kein Kontextwechsel für den Nutzer nötig
+
+---
+
+## Aufgabenverwaltung
+
+1. **Planen** → `tasks/todo.md` mit Checkboxen befüllen
+2. **Abstimmen** → kurz bestätigen lassen, dann implementieren
+3. **Fortschritt tracken** → Items direkt nach Abschluss abhaken
+4. **Änderungen erklären** → High-Level-Zusammenfassung je Schritt
+5. **Ergebnisse dokumentieren** → Review-Abschnitt in `tasks/todo.md`
+6. **Lessons festhalten** → `tasks/lessons.md` nach Korrekturen aktualisieren
+
+---
+
+## Kernprinzipien
+
+- **Einfachheit zuerst** – minimaler Impact, nur das Nötige ändern
+- **Kein Herumdoktern** – Ursachen finden, keine temporären Workarounds
+- **Minimaler Footprint** – nur berühren, was notwendig ist; keine Bugs einschleppen
+- **Kein `any`** – TypeScript strict, immer
+- **Kein userId-Filter auf gemeinsamen Daten** – Ligen, Teilnehmer, Disziplinen sind vereinsweit; Auth via Rolle, nicht via userId (→ Details in `docs/schema-draft.prisma` Kommentare)
+- **Server Actions statt API Routes** für alle Formularaktionen
+- **Archivieren statt Löschen** – bei Objekten mit abhängigen Daten
+
+---
+
+## Referenzimplementierung
+
+Bei Implementierungen immer zuerst treffsicher als Vorlage konsultieren:
+**Lokal:** `/Users/christian/repos/treffsicher` (bevorzugt — kein Netzwerk-Lookup)
+**GitHub:** https://github.com/cykedev/treffsicher
+
+| Datei | Referenz für |
+|---|---|
+| `src/lib/auth.ts` | NextAuth authOptions (Credentials Provider, JWT, Session) |
+| `src/lib/db.ts` | Prisma Client Singleton (adapter-pg, Prisma 7) |
+| `src/lib/startup.ts` | runStartup() – erster App-Start, Admin + System-Disziplinen |
+| `src/lib/auth-helpers.ts` | getAuthSession() |
+| `src/lib/auth-rate-limit/` | Login-Rate-Limiting (In-Memory-Buckets) |
+| `src/proxy.ts` | Edge-Auth via withAuth (proxy.ts = middleware.ts in Next.js 16) |
+| `src/app/api/auth/[...nextauth]/route.ts` | NextAuth Route Handler |
+| `src/app/(app)/layout.tsx` | Layout-basierter Auth-Guard |
+| `src/lib/disciplines/` | Muster für Feature-Modul (actions + queries + types) |
+| `prisma/schema.prisma` | Prisma 7 Schema-Konventionen |
+
+---
+
+## Feature-Implementierung
+
+Reihenfolge für jedes neue Feature (niemals überspringen):
+
+1. **Schema** → `prisma/schema.prisma` ergänzen (model + enum)
+2. **Migration** → `/migrate <name>` ausführen
+3. **Types** → `src/lib/<feature>/types.ts`
+4. **Queries** → `src/lib/<feature>/queries.ts` (nur Lesen, keine Mutationen)
+5. **Actions** → `src/lib/<feature>/actions.ts` (Auth → Rolle → Validierung → DB)
+6. **Berechnung** → `src/lib/<feature>/calculate*.ts` + Tests (falls Logik vorhanden)
+7. **Komponenten** → `src/components/app/<feature>/`
+8. **Page** → `src/app/(app)/<route>/page.tsx` (dünner Orchestrator)
+9. **Verifikation** → `/check` (Lint + Format + Test + TSC)
