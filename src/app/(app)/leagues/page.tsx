@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { redirect } from "next/navigation"
-import { Plus, Archive, CheckCircle } from "lucide-react"
+import { Plus, Archive, CheckCircle, Users } from "lucide-react"
 import { getAuthSession } from "@/lib/auth-helpers"
 import { getLeaguesForManagement } from "@/lib/leagues/queries"
 import { LeagueActions } from "@/components/app/leagues/LeagueActions"
@@ -55,9 +55,13 @@ export default async function LeaguesPage() {
                     <Badge variant="secondary" className="text-xs">
                       {l.discipline.name}
                     </Badge>
-                    <span className="text-xs text-muted-foreground">
+                    <Link
+                      href={`/leagues/${l.id}/participants`}
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      <Users className="h-3 w-3" />
                       {l._count.participants} Teilnehmer
-                    </span>
+                    </Link>
                   </div>
                   <div className="mt-0.5 text-xs text-muted-foreground">
                     Hinrunde bis {formatDate(l.firstLegDeadline, tz)} · Rückrunde bis{" "}
@@ -88,9 +92,13 @@ export default async function LeaguesPage() {
                       <Badge variant="secondary" className="text-xs">
                         {l.discipline.name}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <Link
+                        href={`/leagues/${l.id}/participants`}
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <Users className="h-3 w-3" />
                         {l._count.participants} Teilnehmer
-                      </span>
+                      </Link>
                     </div>
                   </div>
                   <LeagueActions league={l} />

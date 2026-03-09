@@ -8,6 +8,29 @@
 
 ---
 
+### [2026-03-09] Feature: Teilnehmer
+
+- [x] src/lib/participants/types.ts (ParticipantListItem, ParticipantDetail, ParticipantOption)
+- [x] src/lib/participants/queries.ts (getParticipants, getParticipantsForManagement, getParticipantById, getParticipantsNotInLeague)
+- [x] src/lib/participants/actions.ts (createParticipant, updateParticipant, setParticipantActive)
+- [x] src/lib/leagueParticipants/types.ts (LeagueParticipantListItem)
+- [x] src/lib/leagueParticipants/queries.ts (getLeagueParticipants)
+- [x] src/lib/leagueParticipants/actions.ts (enrollParticipant, unenrollParticipant, withdrawParticipant, revokeWithdrawal, updateStartNumber)
+- [x] src/components/app/participants/ParticipantForm.tsx
+- [x] src/components/app/participants/ParticipantRowActions.tsx
+- [x] src/components/app/leagueParticipants/EnrollParticipantForm.tsx
+- [x] src/components/app/leagueParticipants/LeagueParticipantActions.tsx
+- [x] src/app/(app)/participants/page.tsx
+- [x] src/app/(app)/participants/new/page.tsx
+- [x] src/app/(app)/participants/[id]/edit/page.tsx
+- [x] src/app/(app)/leagues/[id]/participants/page.tsx
+- [x] src/app/(app)/leagues/page.tsx – Teilnehmer-Link auf Liga-Zeile
+- [x] /check grün (Lint, Format, Test, TSC)
+
+**Review:** Teilnehmer-Feature vollständig. Admin kann Teilnehmer anlegen, bearbeiten und deaktivieren. Einschreibung in Ligen mit optionaler Startnummer. Rückzug mit Begründung + AuditLog-Eintrag. Rückzug rückgängig (gesperrt wenn Playoffs gestartet) + AuditLog. Aus Liga entfernen nur ohne Matchups. Ligen-Seite verlinkt direkt auf Teilnehmerverwaltung je Liga. Nächster Schritt: Spielplan-Generierung.
+
+---
+
 ## Abgeschlossen
 
 ### [2026-03-09] Projektinitialisierung
