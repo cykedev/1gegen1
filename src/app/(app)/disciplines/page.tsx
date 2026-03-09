@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { Plus, Archive } from "lucide-react"
 import { getAuthSession } from "@/lib/auth-helpers"
 import { getDisciplinesForManagement } from "@/lib/disciplines/queries"
@@ -7,12 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 export default async function DisciplinesPage() {
-  const [session, disciplines] = await Promise.all([
-    getAuthSession(),
-    getDisciplinesForManagement(),
-  ])
+  const session = await getAuthSession()
+  if (session?.user.role !== "ADMIN") redirect("/")
 
-  const isAdmin = session?.user.role === "ADMIN"
+  const disciplines = await getDisciplinesForManagement()
+
   const active = disciplines.filter((d) => !d.isArchived)
   const archived = disciplines.filter((d) => d.isArchived)
 
@@ -23,14 +23,12 @@ export default async function DisciplinesPage() {
           <h1 className="text-2xl font-semibold">Disziplinen</h1>
           <p className="text-sm text-muted-foreground mt-1">Wettbewerbsdisziplinen des Vereins</p>
         </div>
-        {isAdmin && (
-          <Button asChild size="sm">
-            <Link href="/disciplines/new">
-              <Plus className="mr-1 h-4 w-4" />
-              Neue Disziplin
-            </Link>
-          </Button>
-        )}
+        <Button asChild size="sm">
+          <Link href="/disciplines/new">
+            <Plus className="mr-1 h-4 w-4" />
+            Neue Disziplin
+          </Link>
+        </Button>
       </div>
 
       {/* Aktive Disziplinen */}
@@ -54,7 +52,7 @@ export default async function DisciplinesPage() {
                     {d.scoringType === "WHOLE" ? "Ganzringe" : "Zehntelringe"}
                   </Badge>
                 </div>
-                {isAdmin && <DisciplineActions discipline={d} />}
+                <DisciplineActions discipline={d} />
               </div>
             ))}
           </div>
@@ -62,7 +60,7 @@ export default async function DisciplinesPage() {
       </div>
 
       {/* Archivierte Disziplinen */}
-      {isAdmin && archived.length > 0 && (
+      {archived.length > 0 && (
         <div>
           <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
             <Archive className="h-4 w-4" />

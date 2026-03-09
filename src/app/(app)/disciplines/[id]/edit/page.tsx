@@ -14,7 +14,7 @@ export default async function EditDisciplinePage({ params }: Props) {
 
   const [session, discipline] = await Promise.all([getAuthSession(), getDisciplineById(id)])
 
-  if (session?.user.role !== "ADMIN") redirect("/disciplines")
+  if (session?.user.role !== "ADMIN") redirect("/")
   if (!discipline) notFound()
 
   // updateDiscipline braucht die id gebunden — partiell applizieren

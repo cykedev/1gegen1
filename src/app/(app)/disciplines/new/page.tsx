@@ -6,7 +6,7 @@ import { DisciplineForm } from "@/components/app/disciplines/DisciplineForm"
 export default async function NewDisciplinePage() {
   const session = await getAuthSession()
   // Nur Admins dürfen Disziplinen anlegen
-  if (session?.user.role !== "ADMIN") redirect("/disciplines")
+  if (session?.user.role !== "ADMIN") redirect("/")
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
