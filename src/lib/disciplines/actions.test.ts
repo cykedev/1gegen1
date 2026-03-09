@@ -1,15 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { getAuthSessionMock, revalidatePathMock, findUniqueMock, createMock, updateMock, deleteMock, leagueCountMock } =
-  vi.hoisted(() => ({
-    getAuthSessionMock: vi.fn(),
-    revalidatePathMock: vi.fn(),
-    findUniqueMock: vi.fn(),
-    createMock: vi.fn(),
-    updateMock: vi.fn(),
-    deleteMock: vi.fn(),
-    leagueCountMock: vi.fn(),
-  }))
+const {
+  getAuthSessionMock,
+  revalidatePathMock,
+  findUniqueMock,
+  createMock,
+  updateMock,
+  deleteMock,
+  leagueCountMock,
+} = vi.hoisted(() => ({
+  getAuthSessionMock: vi.fn(),
+  revalidatePathMock: vi.fn(),
+  findUniqueMock: vi.fn(),
+  createMock: vi.fn(),
+  updateMock: vi.fn(),
+  deleteMock: vi.fn(),
+  leagueCountMock: vi.fn(),
+}))
 
 vi.mock("@/lib/auth-helpers", () => ({ getAuthSession: getAuthSessionMock }))
 vi.mock("next/cache", () => ({ revalidatePath: revalidatePathMock }))

@@ -62,3 +62,21 @@
 - [x] /check grün (Lint, Format, Test, TSC)
 
 **Review:** Disziplinen-Feature vollständig. Systemdisziplinen werden beim ersten App-Start automatisch angelegt. Admin kann eigene Disziplinen anlegen, bearbeiten, archivieren und löschen. Nächster Schritt: Teilnehmer-Feature.
+
+### [2026-03-09] Feature: Nutzerverwaltung + Account
+
+- [x] src/lib/users/types.ts
+- [x] src/lib/users/queries.ts (getUsers, getUserById)
+- [x] src/lib/users/actions.ts (createUser, updateUser, setUserActive, changeOwnPassword)
+- [x] src/components/app/users/UserCreateForm.tsx
+- [x] src/components/app/users/UserEditForm.tsx
+- [x] src/components/app/users/UserRowActions.tsx (Aktivieren/Deaktivieren, Bearbeiten)
+- [x] src/app/(app)/admin/users/page.tsx
+- [x] src/app/(app)/admin/users/new/page.tsx
+- [x] src/app/(app)/admin/users/[id]/edit/page.tsx
+- [x] src/app/(app)/account/page.tsx (Passwort ändern)
+- [x] src/components/app/account/AccountPasswordForm.tsx
+- [x] src/components/app/shell/Navigation.tsx (Admin-Nav + Mobile-Nav erweitert)
+- [x] src/lib/disciplines/actions.test.ts (Unit-Tests für Disziplinen-Actions)
+
+**Review:** Nutzerverwaltung vollständig. Admin kann Nutzer anlegen, bearbeiten, (de)aktivieren und Passwort zurücksetzen. Letzter aktiver Admin und eigener Account sind gegen Deaktivierung geschützt. Passwortänderung invalidiert alle aktiven Sessions via sessionVersion. Jeder Nutzer kann sein eigenes Passwort unter /account ändern. Nächster Schritt: Teilnehmer-Feature.

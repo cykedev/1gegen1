@@ -4,8 +4,25 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Target, Trophy, Users, Crosshair, Settings, LogOut, Menu, X } from "lucide-react"
+import {
+  Target,
+  Trophy,
+  Users,
+  Crosshair,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  UserCircle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -14,9 +31,7 @@ const navItems = [
   { href: "/participants", label: "Teilnehmer", icon: Users },
 ]
 
-const adminNavItems = [
-  { href: "/disciplines", label: "Disziplinen", icon: Crosshair },
-]
+const adminNavItems = [{ href: "/disciplines", label: "Disziplinen", icon: Crosshair }]
 
 interface Props {
   role: string
@@ -72,15 +87,31 @@ export function Navigation({ role }: Props) {
             <Settings className="h-4 w-4" />
             <span className="hidden md:inline">Admin</span>
           </Link>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="sr-only">Abmelden</span>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <UserCircle className="h-4 w-4" />
+                <span className="sr-only">Konto</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/account">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  Mein Konto
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Abmelden
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="ghost"
             size="sm"
