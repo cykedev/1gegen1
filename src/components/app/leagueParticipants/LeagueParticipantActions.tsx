@@ -1,15 +1,28 @@
 "use client"
 
-import { useTransition } from "react"
-import { MoreHorizontal, UserMinus, UserCheck, Trash2 } from "lucide-react"
+import { useState, useTransition } from "react"
+import { UserMinus, UserCheck, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   withdrawParticipant,
   revokeWithdrawal,
@@ -24,27 +37,28 @@ interface Props {
 
 export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
   const [isPending, startTransition] = useTransition()
-  const fullName = `${entry.participant.firstName} ${entry.participant.lastName}`
+  const [withdrawOpen, setWithdrawOpen] = useState(false)
+  const [reason, setReason] = useState("")
+
+  const fullName = `${entry.participant.lastName}, ${entry.participant.firstName}`
 
   if (playoffsStarted) return null
 
   function handleWithdraw() {
-    const reason = prompt(`Begründung für Rückzug von ${fullName} (optional):`)
-    if (reason === null) return // user pressed Cancel
-    if (!confirm(`${fullName} zurückziehen? Alle Ergebnisse werden aus der Wertung genommen.`))
-      return
     startTransition(async () => {
       const fd = new FormData()
       fd.append("reason", reason)
       const result = await withdrawParticipant(entry.id, null, fd)
       if ("error" in result) {
         alert(typeof result.error === "string" ? result.error : "Fehler beim Rückzug.")
+      } else {
+        setWithdrawOpen(false)
+        setReason("")
       }
     })
   }
 
   function handleRevokeWithdrawal() {
-    if (!confirm(`Rückzug von ${fullName} rückgängig machen?`)) return
     startTransition(async () => {
       const result = await revokeWithdrawal(entry.id)
       if ("error" in result) {
@@ -54,7 +68,6 @@ export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
   }
 
   function handleUnenroll() {
-    if (!confirm(`${fullName} aus der Liga entfernen?`)) return
     startTransition(async () => {
       const result = await unenrollParticipant(entry.id)
       if ("error" in result) {
@@ -64,37 +77,126 @@ export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" disabled={isPending}>
-          <MoreHorizontal className="h-4 w-4" />
-          <span className="sr-only">Aktionen</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {entry.status === "ACTIVE" && (
-          <DropdownMenuItem onClick={handleWithdraw}>
-            <UserMinus className="mr-2 h-4 w-4" />
-            Zurückziehen
-          </DropdownMenuItem>
-        )}
+    <div className="flex items-center gap-1">
+      {/* Zurückziehen */}
+      {entry.status === "ACTIVE" && (
+        <>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            title="Zurückziehen"
+            onClick={() => setWithdrawOpen(true)}
+            disabled={isPending}
+          >
+            <UserMinus className="h-4 w-4" />
+          </Button>
+          <Dialog
+            open={withdrawOpen}
+            onOpenChange={(open) => {
+              setWithdrawOpen(open)
+              if (!open) setReason("")
+            }}
+          >
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>Teilnehmer zurückziehen?</DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-muted-foreground">
+                {fullName} wird zurückgezogen. Alle Ergebnisse werden aus der Wertung genommen.
+              </p>
+              <div className="space-y-1.5">
+                <Label htmlFor="withdraw-reason">
+                  Begründung{" "}
+                  <span className="font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="withdraw-reason"
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="z.B. verletzt"
+                  disabled={isPending}
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setWithdrawOpen(false)}
+                  disabled={isPending}
+                >
+                  Abbrechen
+                </Button>
+                <Button variant="destructive" onClick={handleWithdraw} disabled={isPending}>
+                  {isPending ? "Zurückziehen…" : "Zurückziehen"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
 
-        {entry.status === "WITHDRAWN" && (
-          <DropdownMenuItem onClick={handleRevokeWithdrawal}>
-            <UserCheck className="mr-2 h-4 w-4" />
-            Rückzug rückgängig
-          </DropdownMenuItem>
-        )}
+      {/* Rückzug rückgängig */}
+      {entry.status === "WITHDRAWN" && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
+              title="Rückzug rückgängig"
+              disabled={isPending}
+            >
+              <UserCheck className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Rückzug rückgängig machen?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {fullName} wird wieder als aktiv eingeschrieben.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRevokeWithdrawal}>
+                Rückgängig machen
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
 
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleUnenroll}
-          className="text-destructive focus:text-destructive"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          Aus Liga entfernen
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      {/* Aus Liga entfernen */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 text-destructive/70 hover:text-destructive"
+            title="Aus Liga entfernen"
+            disabled={isPending}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aus Liga entfernen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {fullName} wird dauerhaft aus dieser Liga entfernt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnenroll}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Entfernen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }

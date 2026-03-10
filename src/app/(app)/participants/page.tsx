@@ -52,7 +52,13 @@ export default async function ParticipantsPage() {
                   </div>
                   <p className="text-xs text-muted-foreground">{p.email}</p>
                 </div>
-                <ParticipantRowActions participantId={p.id} isActive={p.isActive} />
+                <ParticipantRowActions
+                    participantId={p.id}
+                    firstName={p.firstName}
+                    lastName={p.lastName}
+                    email={p.email}
+                    isActive={p.isActive}
+                  />
               </div>
             ))}
           </div>
@@ -72,7 +78,13 @@ export default async function ParticipantsPage() {
                     </span>
                     <p className="text-xs text-muted-foreground">{p.email}</p>
                   </div>
-                  <ParticipantRowActions participantId={p.id} isActive={p.isActive} />
+                  <ParticipantRowActions
+                    participantId={p.id}
+                    firstName={p.firstName}
+                    lastName={p.lastName}
+                    email={p.email}
+                    isActive={p.isActive}
+                  />
                 </div>
               ))}
             </div>

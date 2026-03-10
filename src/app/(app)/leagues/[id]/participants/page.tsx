@@ -58,15 +58,15 @@ export default async function LeagueParticipantsPage({ params }: Props) {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Button asChild variant="outline" size="sm">
-              <Link href={`/leagues/${id}/schedule`}>
-                <CalendarDays className="mr-1 h-4 w-4" />
-                Spielplan & Tabelle
+              <Link href={`/leagues/${id}/schedule`} title="Spielplan & Tabelle">
+                <CalendarDays className="h-4 w-4 md:mr-1" />
+                <span className="hidden md:inline">Spielplan & Tabelle</span>
               </Link>
             </Button>
             <Button asChild variant="outline" size="sm">
-              <Link href={`/leagues/${id}/playoffs`}>
-                <Trophy className="mr-1 h-4 w-4" />
-                Playoffs
+              <Link href={`/leagues/${id}/playoffs`} title="Playoffs">
+                <Trophy className="h-4 w-4 md:mr-1" />
+                <span className="hidden md:inline">Playoffs</span>
               </Link>
             </Button>
           </div>

@@ -121,14 +121,12 @@ export function ResultEntryDialog({
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
         {isCorrection ? (
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-            <Pencil className="mr-1 h-3 w-3" />
-            Korrigieren
+          <Button variant="ghost" size="icon" className="h-7 w-7" title="Ergebnis korrigieren">
+            <Pencil className="h-3.5 w-3.5" />
           </Button>
         ) : (
-          <Button variant="outline" size="sm" className="h-7 px-2 text-xs">
-            <Plus className="mr-1 h-3 w-3" />
-            Eintragen
+          <Button variant="outline" size="icon" className="h-7 w-7" title="Ergebnis eintragen">
+            <Plus className="h-3.5 w-3.5" />
           </Button>
         )}
       </DialogTrigger>

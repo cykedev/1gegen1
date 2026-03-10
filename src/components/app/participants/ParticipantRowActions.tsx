@@ -1,26 +1,47 @@
 "use client"
 
-import { useTransition } from "react"
-import { useRouter } from "next/navigation"
-import { MoreHorizontal, Pencil, UserCheck, UserX } from "lucide-react"
+import { useState, useTransition } from "react"
+import { Pencil, UserCheck, UserX } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { setParticipantActive } from "@/lib/participants/actions"
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { setParticipantActive, updateParticipant } from "@/lib/participants/actions"
+import { ParticipantForm } from "./ParticipantForm"
 
 interface Props {
   participantId: string
+  firstName: string
+  lastName: string
+  email: string
   isActive: boolean
 }
 
-export function ParticipantRowActions({ participantId, isActive }: Props) {
-  const router = useRouter()
+export function ParticipantRowActions({
+  participantId,
+  firstName,
+  lastName,
+  email,
+  isActive,
+}: Props) {
+  const [editOpen, setEditOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  const action = updateParticipant.bind(null, participantId)
 
   function handleToggleActive() {
     startTransition(async () => {
@@ -32,33 +53,62 @@ export function ParticipantRowActions({ participantId, isActive }: Props) {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" disabled={isPending}>
-          <MoreHorizontal className="h-4 w-4" />
-          <span className="sr-only">Aktionen</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => router.push(`/participants/${participantId}/edit`)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Bearbeiten
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleToggleActive}>
-          {isActive ? (
-            <>
-              <UserX className="mr-2 h-4 w-4" />
-              Deaktivieren
-            </>
-          ) : (
-            <>
-              <UserCheck className="mr-2 h-4 w-4" />
-              Aktivieren
-            </>
-          )}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-1">
+      {/* Bearbeiten */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-10 w-10"
+        title="Bearbeiten"
+        onClick={() => setEditOpen(true)}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Teilnehmer bearbeiten</DialogTitle>
+          </DialogHeader>
+          <ParticipantForm
+            participant={{ firstName, lastName, email }}
+            action={action}
+            onSuccess={() => setEditOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Deaktivieren / Aktivieren */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10"
+            title={isActive ? "Deaktivieren" : "Aktivieren"}
+            disabled={isPending}
+          >
+            {isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isActive ? "Teilnehmer deaktivieren?" : "Teilnehmer aktivieren?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isActive
+                ? `${lastName}, ${firstName} wird deaktiviert und kann keinen Ligen mehr hinzugefügt werden.`
+                : `${lastName}, ${firstName} wird wieder aktiviert.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={handleToggleActive}>
+              {isActive ? "Deaktivieren" : "Aktivieren"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   )
 }

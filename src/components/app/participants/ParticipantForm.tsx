@@ -9,19 +9,21 @@ import type { ParticipantDetail } from "@/lib/participants/types"
 import type { ActionResult } from "@/lib/types"
 
 interface Props {
-  participant?: ParticipantDetail
+  participant?: Pick<ParticipantDetail, "firstName" | "lastName" | "email">
   action: (prevState: ActionResult | null, formData: FormData) => Promise<ActionResult>
+  onSuccess?: () => void
 }
 
-export function ParticipantForm({ participant, action }: Props) {
+export function ParticipantForm({ participant, action, onSuccess }: Props) {
   const router = useRouter()
   const [state, formAction, isPending] = useActionState(action, null)
 
   useEffect(() => {
     if (state && "success" in state && state.success) {
-      router.push("/participants")
+      if (onSuccess) onSuccess()
+      else router.push("/participants")
     }
-  }, [state, router])
+  }, [state, router, onSuccess])
 
   const fieldErrors =
     state && "error" in state && typeof state.error === "object" ? state.error : null
@@ -77,7 +79,12 @@ export function ParticipantForm({ participant, action }: Props) {
         <Button type="submit" disabled={isPending}>
           {isPending ? "Speichern…" : "Speichern"}
         </Button>
-        <Button type="button" variant="ghost" onClick={() => router.back()} disabled={isPending}>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => (onSuccess ? onSuccess() : router.back())}
+          disabled={isPending}
+        >
           Abbrechen
         </Button>
       </div>

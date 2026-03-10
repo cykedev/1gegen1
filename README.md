@@ -138,6 +138,9 @@ Alle Konfiguration erfolgt über Umgebungsvariablen. Die Vorlage liegt in `.env.
 | `AUTH_RATE_LIMIT_MAX_BUCKETS`                   | Maximale Rate-Limit-Einträge im Speicher                                              | `10000`                               |
 | `PRISMA_AUTO_RESOLVE_FAILED_MIGRATIONS`         | Aktiviert automatische Recovery für fehlgeschlagene Migrationen                       | `true`                                |
 | `PRISMA_AUTO_RESOLVE_UNKNOWN_FAILED_MIGRATIONS` | Fallback für unbekannte fehlgeschlagene Migrationen (`--rolled-back`)                 | `false`                               |
+| `POSTGRES_USER`                                 | PostgreSQL-Benutzer (für `docker-compose.prod.yml`)                                   | `liga`                                |
+| `POSTGRES_PASSWORD`                             | PostgreSQL-Passwort (für `docker-compose.prod.yml`)                                   | sicheres Passwort                     |
+| `POSTGRES_DB`                                   | PostgreSQL-Datenbankname (für `docker-compose.prod.yml`)                              | `liga`                                |
 
 **Entwicklung**: Werte sind direkt in `docker-compose.dev.yml` gesetzt — keine `.env`-Datei nötig.
 
@@ -189,11 +192,23 @@ src/
 ├── app/
 │   ├── (public)/          # Öffentliche Seiten (Login)
 │   ├── (app)/             # Geschützte Seiten (Auth-Guard im Layout)
-│   └── api/auth/          # NextAuth Route Handler
+│   └── api/               # NextAuth Route Handler + PDF-Export-Routen
 ├── proxy.ts               # Edge-Auth (Next.js 16 Middleware-Konvention)
 ├── components/
 │   ├── ui/                # shadcn/ui Basiskomponenten (auto-generiert)
 │   └── app/               # App-spezifische Komponenten
+│       ├── leagues/       # Liga-Formular + Aktionen
+│       ├── leagueParticipants/ # Einschreiben + Rückzug
+│       ├── matchups/      # Spielplan-Generierung + Anzeige
+│       ├── results/       # Ergebniserfassung (Dialog)
+│       ├── standings/     # Tabellenanzeige
+│       ├── playoffs/      # Playoff-Bracket + Duell-Karten
+│       ├── participants/  # Teilnehmerverwaltung
+│       ├── disciplines/   # Disziplinverwaltung
+│       ├── account/       # Passwort-Änderung
+│       ├── users/         # Nutzerverwaltung
+│       ├── shared/        # Wiederverwendbare App-Komponenten
+│       └── shell/         # Navigation, Providers
 └── lib/
     ├── db.ts              # Prisma Client Singleton
     ├── auth.ts            # NextAuth Konfiguration
@@ -210,11 +225,11 @@ src/
     ├── playoffs/          # Playoff-Phase (Bracket, Best-of-Five, Finale)
     ├── participants/      # Teilnehmerverwaltung
     ├── disciplines/       # Disziplinverwaltung
-    └── users/             # Nutzerverwaltung (Admin)
+    ├── users/             # Nutzerverwaltung (Admin)
+    └── pdf/               # PDF-Export (Spielplan, Playoff-Bracket; react-pdf)
 prisma/
 ├── schema.prisma          # Datenbankschema (alle Modelle)
-├── migrations/            # Migrationsdateien (eingecheckt)
-└── seed.ts                # (noch nicht vorhanden)
+└── migrations/            # Migrationsdateien (eingecheckt)
 docs/                      # Anforderungen und technische Dokumentation
 scripts/                   # Docker-Startup- und Migrations-Scripts
 ```

@@ -65,7 +65,7 @@ export function EnrollParticipantForm({ availableParticipants, action }: Props) 
           )}
         </div>
 
-        <Button type="submit" disabled={isPending} className="sm:shrink-0">
+        <Button type="submit" disabled={isPending} className="w-full sm:w-auto sm:shrink-0">
           {isPending ? "Lädt…" : "Einschreiben"}
         </Button>
       </div>

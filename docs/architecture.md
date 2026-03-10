@@ -19,23 +19,23 @@ Verbindlich gleichrangig mit `docs/technical.md`. Neue Dateien immer gemäss die
 /                               ← Dashboard (Übersicht aktiver Ligen)
 /leagues                        ← alle Ligen
 /leagues/new                    ← Liga anlegen (Admin)
-/leagues/[id]                   ← Liga-Detailseite (geplant: Tabelle)
 /leagues/[id]/participants      ← Teilnehmer einschreiben/verwalten (Admin)
-/leagues/[id]/schedule          ← Spielplan generieren + anzeigen (Admin)
-/leagues/[id]/matches/[matchId] ← Paarung + Ergebnis erfassen (geplant)
-/leagues/[id]/playoffs          ← Playoff-Bracket (geplant)
-/leagues/[id]/playoffs/[matchId]← Playoff-Duell + Ergebnis (geplant)
+/leagues/[id]/schedule          ← Spielplan + Tabelle (unified, Admin)
+/leagues/[id]/standings         ← Ligatabelle (Tabellenberechnung)
+/leagues/[id]/playoffs          ← Playoff-Bracket (Admin)
 /participants                   ← Teilnehmerverwaltung
 /participants/new               ← Teilnehmer anlegen (Admin)
 /participants/[id]              ← Profil: alle Duelle, Ergebnisse, Statistik
 /disciplines                    ← Disziplinverwaltung (Admin)
 /disciplines/new                ← Disziplin anlegen (Admin)
-/disciplines/[id]               ← Disziplin bearbeiten (Admin)
+/disciplines/[id]/edit          ← Disziplin bearbeiten (Admin)
 /admin/users                    ← Nutzerverwaltung (nur Admin)
 /admin/users/new                ← Nutzer anlegen (nur Admin)
-/admin/users/[id]               ← Nutzer bearbeiten (nur Admin)
+/admin/users/[id]/edit          ← Nutzer bearbeiten (nur Admin)
 /account                        ← Passwort ändern (eingeloggt)
 /api/auth/[...nextauth]         ← NextAuth-Handler
+/api/leagues/[id]/pdf/schedule  ← PDF-Export: Spielplan + Tabelle
+/api/leagues/[id]/pdf/playoffs  ← PDF-Export: Playoff-Bracket
 ```
 
 ---
@@ -56,30 +56,30 @@ src/
         new/
           page.tsx
         [id]/
-          page.tsx
+          edit/
+            page.tsx
           participants/
             page.tsx
           schedule/
             page.tsx
-          matches/
-            [matchId]/
-              page.tsx        ← geplant
+          standings/
+            page.tsx
           playoffs/
-            page.tsx          ← geplant
-            [matchId]/
-              page.tsx        ← geplant
+            page.tsx
       participants/
         page.tsx
         new/
           page.tsx
         [id]/
-          page.tsx
+          edit/
+            page.tsx
       disciplines/
         page.tsx
         new/
           page.tsx
         [id]/
-          page.tsx
+          edit/
+            page.tsx
       admin/
         layout.tsx            ← Admin-Rolle erzwingen
         users/
@@ -87,36 +87,49 @@ src/
           new/
             page.tsx
           [id]/
-            page.tsx
+            edit/
+              page.tsx
       account/
         page.tsx
     api/
       auth/
         [...nextauth]/
           route.ts
+      leagues/
+        [id]/
+          pdf/
+            schedule/
+              route.ts        ← PDF-Export: Spielplan + Tabelle
+            playoffs/
+              route.ts        ← PDF-Export: Playoff-Bracket
   components/
     ui/                       ← shadcn/ui (auto-generiert, nicht manuell editieren)
     app/
       leagues/                ← Liga-spezifische Komponenten
       leagueParticipants/     ← Einschreiben + Rückzug
       matchups/               ← Spielplan-Generierung + Anzeige
+      results/                ← Ergebniserfassung (Dialog)
+      standings/              ← Tabellenberechnung + Anzeige
+      playoffs/               ← Playoff-Bracket + Duell-Karten
       participants/
       disciplines/
-      admin/
+      account/
+      users/
       shared/                 ← wiederverwendbare App-Komponenten
+      shell/                  ← Navigation, Providers
   lib/
     auth.ts                   ← NextAuth authOptions
     auth-helpers.ts           ← getAuthSession()
     auth-rate-limit/          ← Rate-Limiting-Modul
     authValidation.ts         ← E-Mail/Passwort-Validierung
+    dateTime.ts               ← UTC/Timezone-Helfer (getDisplayTimeZone, formatDateOnly)
     db.ts                     ← Prisma-Client Singleton
     startup.ts                ← Erstinitialisierung (Admin + Disziplinen), aufgerufen aus root layout.tsx
     utils.ts                  ← cn() und andere UI-Helfer
     types.ts                  ← Shared Types (ActionResult etc.)
     leagues/
       actions.ts              ← Server Actions: Liga anlegen/bearbeiten/abschliessen
-      queries.ts              ← Datenbankabfragen: Liga laden, Tabelle
-      calculateTable.ts       ← Tabellenberechnung (Punkte, Direktvergleich, RT)
+      queries.ts              ← Datenbankabfragen: Liga laden
       types.ts
     leagueParticipants/
       actions.ts              ← Einschreiben, Rückzug, Rückzug rückgängig
@@ -127,6 +140,21 @@ src/
       queries.ts              ← Paarungen laden, Schedule-Status
       generateSchedule.ts     ← Circle-Method-Algorithmus (testpflichtig)
       generateSchedule.test.ts
+      types.ts
+    results/
+      actions.ts              ← Ergebnis eintragen/korrigieren
+      calculateResult.ts      ← Ringteiler-Berechnung, Outcome (testpflichtig)
+      calculateResult.test.ts
+      types.ts
+    standings/
+      queries.ts              ← Tabellendaten laden
+      calculateStandings.ts   ← Tabellenberechnung (Punkte, Direktvergleich, RT, testpflichtig)
+      calculateStandings.test.ts
+    playoffs/
+      actions.ts              ← Playoffs starten, Duell-Ergebnis speichern, Duel anlegen
+      queries.ts              ← Bracket-Daten laden
+      calculatePlayoffs.ts    ← Bracket-Logik, Seeding, Match-Auflösung (testpflichtig)
+      calculatePlayoffs.test.ts
       types.ts
     participants/
       actions.ts              ← Teilnehmer anlegen/bearbeiten

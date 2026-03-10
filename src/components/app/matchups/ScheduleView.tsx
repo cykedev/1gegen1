@@ -1,3 +1,4 @@
+import { Clock } from "lucide-react"
 import { formatDateOnly, getDisplayTimeZone } from "@/lib/dateTime"
 import { determineOutcome } from "@/lib/results/calculateResult"
 import type { MatchupListItem, MatchupParticipant, MatchResultSummary } from "@/lib/matchups/types"
@@ -86,12 +87,12 @@ function LegTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/40">
-              <th className="px-4 py-2 text-left font-medium text-muted-foreground">Schütze 1</th>
-              <th className="px-4 py-2 text-left font-medium text-muted-foreground">Schütze 2</th>
-              <th className="w-24 px-4 py-2 text-center font-medium text-muted-foreground">
+              <th className="px-2 py-2 text-left font-medium text-muted-foreground sm:px-4">Schütze 1</th>
+              <th className="px-2 py-2 text-left font-medium text-muted-foreground sm:px-4">Schütze 2</th>
+              <th className="w-10 px-2 py-2 text-center font-medium text-muted-foreground sm:w-24 sm:px-4">
                 Status
               </th>
-              {isAdmin && <th className="w-[110px] px-4 py-2" />}
+              {isAdmin && <th className="w-[60px] px-2 py-2 sm:w-[110px] sm:px-4" />}
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -129,21 +130,21 @@ function LegTable({
                   key={m.id}
                   className={`transition-colors ${isVoid ? "opacity-50" : "hover:bg-muted/20"}`}
                 >
-                  <td className={`px-4 py-3 ${homeOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}>
+                  <td className={`px-2 py-3 sm:px-4 ${homeOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}>
                     <ParticipantResult participant={m.homeParticipant} result={homeResult} />
                   </td>
-                  <td className={`px-4 py-3 ${awayOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}>
+                  <td className={`px-2 py-3 sm:px-4 ${awayOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}>
                     {m.awayParticipant ? (
                       <ParticipantResult participant={m.awayParticipant} result={awayResult} />
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 py-3 text-center sm:px-4">
                     <StatusBadge status={m.status} />
                   </td>
                   {isAdmin && (
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2 py-3 text-right sm:px-4">
                       {!isBye && m.awayParticipant && !isVoid && (
                         <ResultEntryDialog
                           matchupId={m.id}
@@ -171,7 +172,7 @@ function StatusBadge({ status }: { status: string }) {
   if (status === "COMPLETED") {
     return (
       <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
-        {STATUS_LABEL[status]}
+        ✓
       </span>
     )
   }
@@ -179,6 +180,13 @@ function StatusBadge({ status }: { status: string }) {
     return (
       <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
         {STATUS_LABEL[status]}
+      </span>
+    )
+  }
+  if (status === "PENDING") {
+    return (
+      <span className="inline-flex items-center justify-center">
+        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
       </span>
     )
   }

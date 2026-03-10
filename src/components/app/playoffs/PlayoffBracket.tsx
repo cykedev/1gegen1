@@ -167,7 +167,13 @@ function RoundDetail({
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-muted-foreground">{title}</h3>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div
+        className={cn(
+          "grid gap-4",
+          matches.length > 1 && "sm:grid-cols-2",
+          matches.length === 1 && "max-w-xs mx-auto sm:max-w-sm"
+        )}
+      >
         {matches.map((m) => (
           <PlayoffMatchCard key={m.id} match={m} isAdmin={isAdmin} />
         ))}
@@ -246,44 +252,48 @@ export function PlayoffBracket({ bracket, isAdmin, compact = false }: Props) {
   return (
     <div className="space-y-8">
       {/* ── Visuelles Bracket ──────────────────────────────────────────── */}
-      <div className="overflow-x-auto">
-        <div className="min-w-max">
-          {/* Spaltenüberschriften */}
-          <div className="mb-2 flex items-center">
-            {isVF && (
-              <>
-                <div style={{ width: SLOT_W }} className={labelClass}>
-                  Viertelfinale
-                </div>
-                <div style={{ width: CONN_W }} />
-              </>
-            )}
-            <div style={{ width: SLOT_W }} className={labelClass}>
-              Halbfinale
+      <div className="relative">
+        <div className="overflow-x-auto">
+          <div className="min-w-max">
+            {/* Spaltenüberschriften */}
+            <div className="mb-2 flex items-center">
+              {isVF && (
+                <>
+                  <div style={{ width: SLOT_W }} className={labelClass}>
+                    Viertelfinale
+                  </div>
+                  <div style={{ width: CONN_W }} />
+                </>
+              )}
+              <div style={{ width: SLOT_W }} className={labelClass}>
+                Halbfinale
+              </div>
+              <div style={{ width: CONN_W }} />
+              <div style={{ width: SLOT_W }} className={labelClass}>
+                Finale
+              </div>
             </div>
-            <div style={{ width: CONN_W }} />
-            <div style={{ width: SLOT_W }} className={labelClass}>
-              Finale
-            </div>
-          </div>
 
-          {/* Bracket-Zeilen */}
-          <div className="flex items-start">
-            {isVF && (
-              <>
-                <RoundCol
-                  matches={[qf.at(0), qf.at(1), qf.at(2), qf.at(3)]}
-                  tops={qfTops}
-                  totalH={totalH}
-                />
-                <Connector height={totalH} pairs={qfHfPairs} />
-              </>
-            )}
-            <RoundCol matches={[hf.at(0), hf.at(1)]} tops={hfTops} totalH={totalH} />
-            <Connector height={totalH} pairs={hfFinalPairs} />
-            <RoundCol matches={[fin ?? undefined]} tops={[finalTop]} totalH={totalH} />
+            {/* Bracket-Zeilen */}
+            <div className="flex items-start">
+              {isVF && (
+                <>
+                  <RoundCol
+                    matches={[qf.at(0), qf.at(1), qf.at(2), qf.at(3)]}
+                    tops={qfTops}
+                    totalH={totalH}
+                  />
+                  <Connector height={totalH} pairs={qfHfPairs} />
+                </>
+              )}
+              <RoundCol matches={[hf.at(0), hf.at(1)]} tops={hfTops} totalH={totalH} />
+              <Connector height={totalH} pairs={hfFinalPairs} />
+              <RoundCol matches={[fin ?? undefined]} tops={[finalTop]} totalH={totalH} />
+            </div>
           </div>
         </div>
+        {/* Scroll-Hinweis: rechter Fade-Schatten (nur auf Mobile sichtbar) */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
       </div>
 
       {/* ── Detailkarten ───────────────────────────────────────────────── */}

@@ -75,7 +75,7 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
 
   return (
     <Card className={isCompleted ? "border-muted" : ""}>
-      <CardHeader className="pb-2">
+      <CardHeader className="px-4 pb-2 sm:px-6">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {ROUND_LABEL[match.round]}
@@ -89,19 +89,19 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 px-4 sm:px-6">
         {/* Stand */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <span
-            className={`text-sm font-medium ${winnerId === match.participantA.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
+            className={`min-w-0 flex-1 truncate text-sm font-medium ${winnerId === match.participantA.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
           >
             {nameA}
           </span>
-          <span className="tabular-nums text-lg font-bold">
+          <span className="shrink-0 tabular-nums text-lg font-bold">
             {match.winsA} : {match.winsB}
           </span>
           <span
-            className={`text-sm font-medium text-right ${winnerId === match.participantB.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
+            className={`min-w-0 flex-1 truncate text-right text-sm font-medium ${winnerId === match.participantB.id ? "text-emerald-600 dark:text-emerald-400" : ""}`}
           >
             {nameB}
           </span>
@@ -116,7 +116,7 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
               const isDraw = duel.isCompleted && duel.winnerId === null
 
               return (
-                <div key={duel.id} className="flex items-center gap-2 px-3 py-2">
+                <div key={duel.id} className="flex items-center gap-2 px-2 py-2 sm:px-3">
                   <span className="w-20 text-muted-foreground">
                     {duel.isSuddenDeath
                       ? isFinal
@@ -130,21 +130,30 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
                   {duel.isCompleted && duel.resultA && duel.resultB ? (
                     <>
                       <span
-                        className={`flex-1 text-right tabular-nums ${isWinnerA ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}`}
+                        className={`min-w-0 flex-1 overflow-hidden text-right tabular-nums ${isWinnerA ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}`}
                       >
                         {isFinal
-                          ? `${duel.resultA.totalRings} Ringe`
-                          : `RT ${(duel.resultA.ringteiler ?? 0).toFixed(1)}`}
+                          ? `${duel.resultA.totalRings}\u00A0Ringe`
+                          : `RT\u00A0${(duel.resultA.ringteiler ?? 0).toFixed(1)}`}
                       </span>
-                      <span className="text-muted-foreground">
-                        {isDraw ? "Unentschieden" : isWinnerA ? "▸" : "◂"}
+                      <span className="shrink-0 text-muted-foreground">
+                        {isDraw ? (
+                          <>
+                            <span className="hidden sm:inline">Unentschieden</span>
+                            <span className="sm:hidden">=</span>
+                          </>
+                        ) : isWinnerA ? (
+                          "▸"
+                        ) : (
+                          "◂"
+                        )}
                       </span>
                       <span
-                        className={`flex-1 tabular-nums ${isWinnerB ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}`}
+                        className={`min-w-0 flex-1 overflow-hidden tabular-nums ${isWinnerB ? "font-semibold text-emerald-600 dark:text-emerald-400" : ""}`}
                       >
                         {isFinal
-                          ? `${duel.resultB.totalRings} Ringe`
-                          : `RT ${(duel.resultB.ringteiler ?? 0).toFixed(1)}`}
+                          ? `${duel.resultB.totalRings}\u00A0Ringe`
+                          : `RT\u00A0${(duel.resultB.ringteiler ?? 0).toFixed(1)}`}
                       </span>
                       {isAdmin && match.canCorrect && (
                         <>
@@ -158,8 +167,8 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
                           {duel.id === lastDuelId && (
                             <Button
                               variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs text-destructive hover:text-destructive"
+                              size="icon"
+                              className="h-6 w-6 text-destructive hover:text-destructive"
                               onClick={() => handleDeleteDuel(duel.id)}
                               disabled={isPending}
                             >
@@ -171,7 +180,7 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
                     </>
                   ) : (
                     <>
-                      <span className="flex-1 text-center text-muted-foreground">ausstehend</span>
+                      <span className="flex-1" />
                       {isAdmin && duel.id === nextPendingDuel?.id && (
                         <>
                           <PlayoffDuelResultDialog

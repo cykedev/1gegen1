@@ -19,9 +19,9 @@ export function PdfDownloadButton({ href, label = "PDF exportieren" }: Props) {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleClick} disabled={loading}>
-      <FileDown className="mr-1 h-4 w-4" />
-      {loading ? "Erstelle PDF…" : label}
+    <Button variant="outline" size="sm" onClick={handleClick} disabled={loading} title={label}>
+      <FileDown className="h-4 w-4 md:mr-1" />
+      <span className="hidden md:inline">{loading ? "Erstelle PDF…" : label}</span>
     </Button>
   )
 }

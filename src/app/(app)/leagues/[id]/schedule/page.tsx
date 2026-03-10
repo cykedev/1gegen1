@@ -55,16 +55,16 @@ export default async function LeagueSchedulePage({ params }: Props) {
           <div className="flex shrink-0 items-center gap-2">
             {isAdmin && (
               <Button asChild variant="outline" size="sm">
-                <Link href={`/leagues/${id}/participants`}>
-                  <Users className="mr-1 h-4 w-4" />
-                  Teilnehmer
+                <Link href={`/leagues/${id}/participants`} title="Teilnehmer">
+                  <Users className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">Teilnehmer</span>
                 </Link>
               </Button>
             )}
             <Button asChild variant="outline" size="sm">
-              <Link href={`/leagues/${id}/playoffs`}>
-                <Trophy className="mr-1 h-4 w-4" />
-                Playoffs
+              <Link href={`/leagues/${id}/playoffs`} title="Playoffs">
+                <Trophy className="h-4 w-4 md:mr-1" />
+                <span className="hidden md:inline">Playoffs</span>
               </Link>
             </Button>
             {scheduleStatus.hasSchedule && (

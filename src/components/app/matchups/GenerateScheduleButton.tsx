@@ -38,9 +38,11 @@ export function GenerateScheduleButton({ leagueId, hasSchedule }: Props) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button disabled={isPending}>
-          <CalendarPlus className="mr-2 h-4 w-4" />
-          {isPending ? "Generiere…" : "Spielplan generieren"}
+        <Button disabled={isPending} title="Spielplan generieren">
+          <CalendarPlus className="h-4 w-4 md:mr-2" />
+          <span className="hidden md:inline">
+            {isPending ? "Generiere…" : "Spielplan generieren"}
+          </span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>

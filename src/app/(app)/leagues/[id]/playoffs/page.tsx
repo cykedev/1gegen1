@@ -59,7 +59,7 @@ export default async function LeaguePlayoffsPage({ params }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       {/* Header */}
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-2 mb-2">
@@ -78,16 +78,16 @@ export default async function LeaguePlayoffsPage({ params }: Props) {
           <div className="flex shrink-0 items-center gap-2">
             {isAdmin && (
               <Button asChild variant="outline" size="sm">
-                <Link href={`/leagues/${id}/participants`}>
-                  <Users className="mr-1 h-4 w-4" />
-                  Teilnehmer
+                <Link href={`/leagues/${id}/participants`} title="Teilnehmer">
+                  <Users className="h-4 w-4 md:mr-1" />
+                  <span className="hidden md:inline">Teilnehmer</span>
                 </Link>
               </Button>
             )}
             <Button asChild variant="outline" size="sm">
-              <Link href={`/leagues/${id}/schedule`}>
-                <CalendarDays className="mr-1 h-4 w-4" />
-                Spielplan & Tabelle
+              <Link href={`/leagues/${id}/schedule`} title="Spielplan & Tabelle">
+                <CalendarDays className="h-4 w-4 md:mr-1" />
+                <span className="hidden md:inline">Spielplan & Tabelle</span>
               </Link>
             </Button>
             {playoffsStarted && <PdfDownloadButton href={`/api/leagues/${id}/pdf/playoffs`} />}

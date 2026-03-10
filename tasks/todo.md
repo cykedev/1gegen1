@@ -8,6 +8,19 @@
 
 ---
 
+### [2026-03-10] Mobile-Optimierung: Playoffs-Seite
+
+- [x] `PlayoffMatchCard.tsx` – `CardHeader` / `CardContent` Padding: `px-6` → `px-4 sm:px-6`
+- [x] `PlayoffMatchCard.tsx` – Duell-Zeilen: `px-3` → `px-2 sm:px-3`
+- [x] `PlayoffMatchCard.tsx` – „ausstehend"-Placeholder-Text aus pending-Duell-Zeilen entfernt (alle Breakpoints)
+- [x] `PlayoffBracket.tsx` – Finale-Karte: `max-w-xs mx-auto sm:max-w-sm` für Single-Match-Runden; `sm:grid-cols-2` nur bei `matches.length > 1` aktiv
+- [x] `PlayoffDuelResultDialog.tsx` – „Eintragen"-Button icon-only auf Mobile (`hidden sm:inline` für Textlabel)
+- [x] `/check` grün (Lint ✅, Format ✅, 108 Tests ✅, TSC ✅)
+
+**Review:** Playoffs-Seite auf 375 px (iPhone) deutlich kompakter. Karten nutzen `px-4` statt `px-6` auf Mobile; Finale-Karte zentriert mit sichtbaren Rändern (`max-w-xs`). Kein Placeholder-Text mehr in offenen Duell-Zeilen. „Eintragen"-Button zeigt nur `+`-Icon auf Mobile, volles Label ab `sm`. Klassisches Responsive-Button-Muster konsistent mit Navigation.
+
+---
+
 ### [2026-03-10] Refactor: Automatisches Duell bei VF/HF-Unentschieden
 
 - [x] `addSuddenDeathDuel` generalisiert zu `addExtraDuel(id, isSuddenDeath)` in `src/lib/playoffs/actions.ts`
