@@ -239,6 +239,13 @@ Gilt für alle Datenobjekte mit abhängigen Daten:
 - Archivierte Objekte: nicht mehr in Auswahlfeldern; historische Daten vollständig abrufbar
 - Explizite Löschung (mit Datenverlust): nur ohne abhängige Daten möglich
 
+### Liga endgültig löschen (Force Delete)
+
+- Nur Admin; auf der Liga-Edit-Seite in einer rot umrandeten Gefahrenzone
+- Löscht die Liga unabhängig von Status und Spielfortschritt (auch mit Ergebnissen und Playoffs)
+- Admin muss exakten Liga-Namen eintippen (case-sensitive) zur Bestätigung
+- Löscht in einer DB-Transaktion in dieser Reihenfolge: PlayoffDuelResults → PlayoffDuels → PlayoffMatches → MatchResults → Matchups → AuditLog-Einträge → LeagueParticipants → League
+
 ---
 
 ## Datenschutz

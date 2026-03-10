@@ -87,8 +87,12 @@ function LegTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/40">
-              <th className="px-2 py-2 text-left font-medium text-muted-foreground sm:px-4">Schütze 1</th>
-              <th className="px-2 py-2 text-left font-medium text-muted-foreground sm:px-4">Schütze 2</th>
+              <th className="px-2 py-2 text-left font-medium text-muted-foreground sm:px-4">
+                Schütze 1
+              </th>
+              <th className="px-2 py-2 text-left font-medium text-muted-foreground sm:px-4">
+                Schütze 2
+              </th>
               <th className="w-10 px-2 py-2 text-center font-medium text-muted-foreground sm:w-24 sm:px-4">
                 Status
               </th>
@@ -130,10 +134,14 @@ function LegTable({
                   key={m.id}
                   className={`transition-colors ${isVoid ? "opacity-50" : "hover:bg-muted/20"}`}
                 >
-                  <td className={`px-2 py-3 sm:px-4 ${homeOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}>
+                  <td
+                    className={`px-2 py-3 sm:px-4 ${homeOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}
+                  >
                     <ParticipantResult participant={m.homeParticipant} result={homeResult} />
                   </td>
-                  <td className={`px-2 py-3 sm:px-4 ${awayOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}>
+                  <td
+                    className={`px-2 py-3 sm:px-4 ${awayOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}
+                  >
                     {m.awayParticipant ? (
                       <ParticipantResult participant={m.awayParticipant} result={awayResult} />
                     ) : (

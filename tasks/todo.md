@@ -8,6 +8,19 @@
 
 ---
 
+### [2026-03-10] Feature: Liga endgültig löschen (Force Delete)
+
+- [x] `src/lib/leagues/actions.ts` – `forceDeleteLeague()` Server Action (Auth → Name-Bestätigung → transaktionale Kaskadenlöschung)
+- [x] `src/components/app/leagues/ForceDeleteLeagueSection.tsx` – Gefahrenzone-Sektion mit AlertDialog und Name-Eingabe
+- [x] `src/app/(app)/leagues/[id]/edit/page.tsx` – `ForceDeleteLeagueSection` eingebunden
+- [x] `src/lib/leagues/actions.test.ts` – 7 neue Tests für `forceDeleteLeague`
+- [x] `docs/features.md` – Abschnitt „Liga endgültig löschen" ergänzt
+- [x] `docs/architecture.md` – `actions.ts`-Beschreibung aktualisiert
+
+**Review:** Admin kann eine Liga jetzt unabhängig von Status und Spielfortschritt komplett löschen. Gefahrenzone auf der Edit-Seite, AlertDialog mit Name-Bestätigung (case-sensitive). Kaskadenlöschung erfolgt manuell bottom-up in einer Transaktion (PlayoffDuelResults → PlayoffDuels → PlayoffMatches → MatchResults → Matchups → AuditLog → LeagueParticipants → League), da kein `onDelete: Cascade` im Schema definiert ist.
+
+---
+
 ### [2026-03-10] Mobile-Optimierung: Playoffs-Seite
 
 - [x] `PlayoffMatchCard.tsx` – `CardHeader` / `CardContent` Padding: `px-6` → `px-4 sm:px-6`

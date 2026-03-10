@@ -107,8 +107,7 @@ export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
               </p>
               <div className="space-y-1.5">
                 <Label htmlFor="withdraw-reason">
-                  Begründung{" "}
-                  <span className="font-normal text-muted-foreground">(optional)</span>
+                  Begründung <span className="font-normal text-muted-foreground">(optional)</span>
                 </Label>
                 <Input
                   id="withdraw-reason"

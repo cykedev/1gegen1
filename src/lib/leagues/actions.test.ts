@@ -11,6 +11,7 @@ const {
   leagueParticipantCountMock,
   matchupCountMock,
   playoffMatchCountMock,
+  transactionMock,
 } = vi.hoisted(() => ({
   getAuthSessionMock: vi.fn(),
   revalidatePathMock: vi.fn(),
@@ -22,6 +23,7 @@ const {
   leagueParticipantCountMock: vi.fn(),
   matchupCountMock: vi.fn(),
   playoffMatchCountMock: vi.fn(),
+  transactionMock: vi.fn(),
 }))
 
 vi.mock("@/lib/auth-helpers", () => ({ getAuthSession: getAuthSessionMock }))
@@ -40,10 +42,17 @@ vi.mock("@/lib/db", () => ({
     leagueParticipant: { count: leagueParticipantCountMock },
     matchup: { count: matchupCountMock },
     playoffMatch: { count: playoffMatchCountMock },
+    $transaction: transactionMock,
   },
 }))
 
-import { createLeague, updateLeague, setLeagueStatus, deleteLeague } from "@/lib/leagues/actions"
+import {
+  createLeague,
+  updateLeague,
+  setLeagueStatus,
+  deleteLeague,
+  forceDeleteLeague,
+} from "@/lib/leagues/actions"
 
 const adminSession = { user: { id: "u1", role: "ADMIN" } }
 const userSession = { user: { id: "u2", role: "USER" } }
@@ -295,5 +304,124 @@ describe("deleteLeague", () => {
     expect(result).toEqual({ success: true })
     expect(leagueDeleteMock).toHaveBeenCalledWith({ where: { id: "l1" } })
     expect(revalidatePathMock).toHaveBeenCalled()
+  })
+})
+
+// ─── forceDeleteLeague ───────────────────────────────────────────────────────
+
+describe("forceDeleteLeague", () => {
+  const mockTx = {
+    leagueParticipant: { findMany: vi.fn(), deleteMany: vi.fn() },
+    matchup: { findMany: vi.fn(), deleteMany: vi.fn() },
+    matchResult: { findMany: vi.fn(), deleteMany: vi.fn() },
+    playoffMatch: { findMany: vi.fn(), deleteMany: vi.fn() },
+    playoffDuel: { findMany: vi.fn(), deleteMany: vi.fn() },
+    playoffDuelResult: { deleteMany: vi.fn() },
+    auditLog: { deleteMany: vi.fn() },
+    league: { delete: vi.fn() },
+  }
+
+  function setupEmptyTx() {
+    mockTx.leagueParticipant.findMany.mockResolvedValue([])
+    mockTx.matchup.findMany.mockResolvedValue([])
+    mockTx.matchResult.findMany.mockResolvedValue([])
+    mockTx.playoffMatch.findMany.mockResolvedValue([])
+    mockTx.playoffDuel.findMany.mockResolvedValue([])
+    mockTx.playoffDuelResult.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.playoffDuel.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.playoffMatch.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.matchResult.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.matchup.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.auditLog.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.leagueParticipant.deleteMany.mockResolvedValue({ count: 0 })
+    mockTx.league.delete.mockResolvedValue({})
+    transactionMock.mockImplementation(async (fn: (tx: typeof mockTx) => Promise<void>) =>
+      fn(mockTx)
+    )
+  }
+
+  beforeEach(() => {
+    vi.resetAllMocks()
+    leagueFindUniqueMock.mockResolvedValue({ id: "l1", name: "Winterliga 2026" })
+    setupEmptyTx()
+  })
+
+  it("liefert Fehler ohne Session", async () => {
+    getAuthSessionMock.mockResolvedValue(null)
+    const result = await forceDeleteLeague("l1", "Winterliga 2026")
+    expect(result).toEqual({ error: "Nicht angemeldet" })
+    expect(transactionMock).not.toHaveBeenCalled()
+  })
+
+  it("liefert Fehler wenn kein Admin", async () => {
+    getAuthSessionMock.mockResolvedValue(userSession)
+    const result = await forceDeleteLeague("l1", "Winterliga 2026")
+    expect(result).toEqual({ error: "Keine Berechtigung" })
+    expect(transactionMock).not.toHaveBeenCalled()
+  })
+
+  it("liefert Fehler wenn Liga nicht gefunden", async () => {
+    getAuthSessionMock.mockResolvedValue(adminSession)
+    leagueFindUniqueMock.mockResolvedValue(null)
+    const result = await forceDeleteLeague("l99", "Winterliga 2026")
+    expect(result).toEqual({ error: "Liga nicht gefunden." })
+    expect(transactionMock).not.toHaveBeenCalled()
+  })
+
+  it("liefert Fehler bei falschem Bestätigungsnamen", async () => {
+    getAuthSessionMock.mockResolvedValue(adminSession)
+    const result = await forceDeleteLeague("l1", "Falsche Liga")
+    expect(result).toMatchObject({ error: expect.stringContaining("stimmt nicht") })
+    expect(transactionMock).not.toHaveBeenCalled()
+  })
+
+  it("löscht leere Liga (ohne abhängige Daten)", async () => {
+    getAuthSessionMock.mockResolvedValue(adminSession)
+    const result = await forceDeleteLeague("l1", "Winterliga 2026")
+    expect(result).toEqual({ success: true })
+    expect(mockTx.league.delete).toHaveBeenCalledWith({ where: { id: "l1" } })
+    expect(revalidatePathMock).toHaveBeenCalled()
+  })
+
+  it("löscht Liga mit allen abhängigen Daten", async () => {
+    getAuthSessionMock.mockResolvedValue(adminSession)
+
+    mockTx.leagueParticipant.findMany.mockResolvedValue([{ id: "lp1" }, { id: "lp2" }])
+    mockTx.matchup.findMany.mockResolvedValue([{ id: "mu1" }, { id: "mu2" }])
+    mockTx.matchResult.findMany.mockResolvedValue([{ id: "mr1" }])
+    mockTx.playoffMatch.findMany.mockResolvedValue([{ id: "pm1" }])
+    mockTx.playoffDuel.findMany.mockResolvedValue([{ id: "pd1" }, { id: "pd2" }])
+
+    const result = await forceDeleteLeague("l1", "Winterliga 2026")
+    expect(result).toEqual({ success: true })
+
+    // Bottom-up Löschreihenfolge
+    expect(mockTx.playoffDuelResult.deleteMany).toHaveBeenCalledWith({
+      where: { duelId: { in: ["pd1", "pd2"] } },
+    })
+    expect(mockTx.playoffDuel.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["pd1", "pd2"] } },
+    })
+    expect(mockTx.playoffMatch.deleteMany).toHaveBeenCalledWith({
+      where: { id: { in: ["pm1"] } },
+    })
+    expect(mockTx.matchResult.deleteMany).toHaveBeenCalledWith({
+      where: { matchupId: { in: ["mu1", "mu2"] } },
+    })
+    expect(mockTx.matchup.deleteMany).toHaveBeenCalledWith({ where: { leagueId: "l1" } })
+    expect(mockTx.auditLog.deleteMany).toHaveBeenCalledWith({
+      where: { entityId: { in: ["lp1", "lp2", "mu1", "mu2", "mr1"] } },
+    })
+    expect(mockTx.leagueParticipant.deleteMany).toHaveBeenCalledWith({
+      where: { leagueId: "l1" },
+    })
+    expect(mockTx.league.delete).toHaveBeenCalledWith({ where: { id: "l1" } })
+  })
+
+  it("liefert Fehler wenn Transaktion fehlschlägt", async () => {
+    getAuthSessionMock.mockResolvedValue(adminSession)
+    transactionMock.mockRejectedValue(new Error("DB error"))
+    const result = await forceDeleteLeague("l1", "Winterliga 2026")
+    expect(result).toMatchObject({ error: expect.stringContaining("nicht gelöscht") })
   })
 })

@@ -44,14 +44,26 @@ export function StandingsTable({ rows }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b bg-muted/40">
-            <th className="w-10 px-2 py-2.5 text-center font-medium text-muted-foreground sm:px-4">Pl.</th>
-            <th className="px-2 py-2.5 text-left font-medium text-muted-foreground sm:px-4">Name</th>
-            <th className="px-2 py-2.5 text-center font-medium text-muted-foreground sm:px-4">Sp.</th>
+            <th className="w-10 px-2 py-2.5 text-center font-medium text-muted-foreground sm:px-4">
+              Pl.
+            </th>
+            <th className="px-2 py-2.5 text-left font-medium text-muted-foreground sm:px-4">
+              Name
+            </th>
+            <th className="px-2 py-2.5 text-center font-medium text-muted-foreground sm:px-4">
+              Sp.
+            </th>
             <th className="px-2 py-2.5 text-center font-medium text-muted-foreground sm:px-4">S</th>
-            <th className="hidden px-4 py-2.5 text-center font-medium text-muted-foreground sm:table-cell">U</th>
-            <th className="hidden px-4 py-2.5 text-center font-medium text-muted-foreground sm:table-cell">N</th>
+            <th className="hidden px-4 py-2.5 text-center font-medium text-muted-foreground sm:table-cell">
+              U
+            </th>
+            <th className="hidden px-4 py-2.5 text-center font-medium text-muted-foreground sm:table-cell">
+              N
+            </th>
             <th className="px-2 py-2.5 text-center font-semibold sm:px-4">Pkt.</th>
-            <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground sm:table-cell">Best. RT</th>
+            <th className="hidden px-4 py-2.5 text-right font-medium text-muted-foreground sm:table-cell">
+              Best. RT
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -83,7 +95,9 @@ export function StandingsTable({ rows }: Props) {
                     </>
                   )}
                 </td>
-                <td className="px-2 py-3 text-center text-muted-foreground sm:px-4">{row.played}</td>
+                <td className="px-2 py-3 text-center text-muted-foreground sm:px-4">
+                  {row.played}
+                </td>
                 <td className="px-2 py-3 text-center sm:px-4">
                   {row.wins > 0 ? (
                     <span className="font-medium text-emerald-600 dark:text-emerald-400">

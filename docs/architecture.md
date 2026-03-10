@@ -128,7 +128,7 @@ src/
     utils.ts                  ← cn() und andere UI-Helfer
     types.ts                  ← Shared Types (ActionResult etc.)
     leagues/
-      actions.ts              ← Server Actions: Liga anlegen/bearbeiten/abschliessen
+      actions.ts              ← Server Actions: Liga anlegen/bearbeiten/abschliessen/force-delete
       queries.ts              ← Datenbankabfragen: Liga laden
       types.ts
     leagueParticipants/
@@ -279,7 +279,7 @@ Browser-Formular
     → Server Action (lib/<feature>/actions.ts)
       → getAuthSession()          Auth
       → ZodSchema.safeParse()     Validierung
-      → db.<model>.<op>()         DB (immer mit userId-Filter)
+      → db.<model>.<op>()         DB (kein userId-Filter – vereinsweite Daten)
       → revalidatePath()          Cache invalidieren
       → return ActionResult       Strukturierte Rückgabe
 

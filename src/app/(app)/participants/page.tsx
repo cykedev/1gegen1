@@ -53,12 +53,12 @@ export default async function ParticipantsPage() {
                   <p className="text-xs text-muted-foreground">{p.email}</p>
                 </div>
                 <ParticipantRowActions
-                    participantId={p.id}
-                    firstName={p.firstName}
-                    lastName={p.lastName}
-                    email={p.email}
-                    isActive={p.isActive}
-                  />
+                  participantId={p.id}
+                  firstName={p.firstName}
+                  lastName={p.lastName}
+                  email={p.email}
+                  isActive={p.isActive}
+                />
               </div>
             ))}
           </div>

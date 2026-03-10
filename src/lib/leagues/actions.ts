@@ -167,3 +167,106 @@ export async function deleteLeague(id: string): Promise<ActionResult> {
   revalidateLeaguePaths()
   return { success: true }
 }
+
+// ─────────────────────────────────────────────────────────────
+// FORCE DELETE (mit allen Abhängigkeiten)
+// ─────────────────────────────────────────────────────────────
+
+/** Endgültiges Löschen einer Liga inkl. aller abhängigen Daten. */
+export async function forceDeleteLeague(
+  leagueId: string,
+  confirmationName: string
+): Promise<ActionResult> {
+  const session = await getAuthSession()
+  if (!session) return { error: "Nicht angemeldet" }
+  if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung" }
+
+  const league = await db.league.findUnique({
+    where: { id: leagueId },
+    select: { id: true, name: true },
+  })
+  if (!league) return { error: "Liga nicht gefunden." }
+
+  if (confirmationName.trim() !== league.name) {
+    return { error: "Der eingegebene Name stimmt nicht mit dem Liga-Namen überein." }
+  }
+
+  try {
+    await db.$transaction(async (tx) => {
+      // 1. IDs sammeln für AuditLog-Bereinigung
+      const leagueParticipants = await tx.leagueParticipant.findMany({
+        where: { leagueId },
+        select: { id: true },
+      })
+      const lpIds = leagueParticipants.map((lp) => lp.id)
+
+      const matchups = await tx.matchup.findMany({
+        where: { leagueId },
+        select: { id: true },
+      })
+      const matchupIds = matchups.map((m) => m.id)
+
+      const matchResults =
+        matchupIds.length > 0
+          ? await tx.matchResult.findMany({
+              where: { matchupId: { in: matchupIds } },
+              select: { id: true },
+            })
+          : []
+      const matchResultIds = matchResults.map((r) => r.id)
+
+      const playoffMatches = await tx.playoffMatch.findMany({
+        where: { leagueId },
+        select: { id: true },
+      })
+      const playoffMatchIds = playoffMatches.map((pm) => pm.id)
+
+      // 2. Bottom-up löschen
+      if (playoffMatchIds.length > 0) {
+        const playoffDuels = await tx.playoffDuel.findMany({
+          where: { playoffMatchId: { in: playoffMatchIds } },
+          select: { id: true },
+        })
+        const playoffDuelIds = playoffDuels.map((pd) => pd.id)
+
+        if (playoffDuelIds.length > 0) {
+          await tx.playoffDuelResult.deleteMany({
+            where: { duelId: { in: playoffDuelIds } },
+          })
+          await tx.playoffDuel.deleteMany({
+            where: { id: { in: playoffDuelIds } },
+          })
+        }
+
+        await tx.playoffMatch.deleteMany({
+          where: { id: { in: playoffMatchIds } },
+        })
+      }
+
+      if (matchupIds.length > 0) {
+        await tx.matchResult.deleteMany({
+          where: { matchupId: { in: matchupIds } },
+        })
+      }
+
+      await tx.matchup.deleteMany({ where: { leagueId } })
+
+      // AuditLog-Einträge bereinigen
+      const allEntityIds = [...lpIds, ...matchupIds, ...matchResultIds]
+      if (allEntityIds.length > 0) {
+        await tx.auditLog.deleteMany({
+          where: { entityId: { in: allEntityIds } },
+        })
+      }
+
+      await tx.leagueParticipant.deleteMany({ where: { leagueId } })
+      await tx.league.delete({ where: { id: leagueId } })
+    })
+  } catch (error) {
+    console.error("Fehler beim endgültigen Löschen der Liga:", error)
+    return { error: "Liga konnte nicht gelöscht werden." }
+  }
+
+  revalidateLeaguePaths()
+  return { success: true }
+}
