@@ -8,6 +8,18 @@
 
 ---
 
+### [2026-03-10] Refactor: Automatisches Duell bei VF/HF-Unentschieden
+
+- [x] `addSuddenDeathDuel` generalisiert zu `addExtraDuel(id, isSuddenDeath)` in `src/lib/playoffs/actions.ts`
+- [x] Bei VF/HF-Unentschieden: nächstes Duell wird automatisch angelegt (analog Finale Sudden Death)
+- [x] Hard-Limit von 5 Duellen pro Match in `PlayoffMatchCard.tsx` entfernt
+- [x] `docs/features.md` – Best-of-Five-Beschreibung aktualisiert (kein hartes Limit mehr)
+- [x] `docs/data-model.md` – Glossareintrag „Best-of-Five" aktualisiert
+
+**Review:** `addExtraDuel` übernimmt jetzt beide Fälle (Finale SD und VF/HF Draw). In VF/HF wird nach jedem Unentschieden automatisch ein weiteres Duell angelegt, bis ein Sieger feststeht. Das 5-Duelle-Limit im Client wurde entfernt, da es den automatischen Flow blockiert hätte.
+
+---
+
 ### [2026-03-09] Feature: Playoff-Phase
 
 - [x] src/lib/playoffs/types.ts (PlayoffDuelItem, PlayoffMatchItem, PlayoffBracketData, SavePlayoffDuelResultInput)

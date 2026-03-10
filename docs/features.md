@@ -168,7 +168,7 @@ Halbfinale: bester verbleibender Gruppenplatz vs. schlechtester usw.
 - Pro Duell: 10 Schuss, Ring- und Teilerwertung (identisch zur Gruppenphase)
 - Duelle können an verschiedenen Abenden oder mehrere an einem Abend stattfinden
 - Kein Vorschießen
-- Admin legt jedes Duell manuell an; bis zu 5 Duelle pro Match möglich
+- Admin legt jedes Duell manuell an; bei Unentschieden wird das nächste Duell automatisch angelegt (kein hartes Limit)
 
 ### Rundenfortschritt (manuell)
 

@@ -92,7 +92,7 @@ Ringteiler = MaxRinge − Seriensumme + bester Teiler der Serie
 | Round Robin           | Jeder gegen jeden (Hin- und Rückrunde)                                                                                                      |
 | Freilos               | Kampfloser Sieg bei ungerader Teilnehmerzahl (3 Punkte)                                                                                     |
 | Rückzug               | Vorzeitiges Ausscheiden; alle Ergebnisse rückwirkend gestrichen                                                                             |
-| Best-of-Five          | Wer zuerst 3 Duelle gewinnt, kommt weiter (max. 5 Duelle)                                                                                   |
+| Best-of-Five          | Wer zuerst 3 Duelle gewinnt, kommt weiter; bei Unentschieden wird automatisch ein weiteres Duell angelegt (kein hartes Limit)               |
 | Finale-Modus          | 75s/Schuss, kein Probeschuss, Ansage je Schuss; Wertung immer gemäss Disziplin-Definition; Gleichstand → Sudden Death (Schuss für Schuss)   |
 | Meyton-Import         | Ergebnisübernahme aus Meyton-System via URL oder PDF                                                                                        |
 | Vorschießen           | Nicht erlaubt – beide Schützen müssen gleichzeitig am Stand antreten                                                                        |

@@ -46,10 +46,10 @@ export function PlayoffMatchCard({ match, isAdmin }: Props) {
   const lastDuelId = match.duels.length > 0 ? match.duels[match.duels.length - 1].id : null
 
   // Ob "Neues Duell"-Button angezeigt werden soll
-  // VF/HF: wenn kein pending Duell, Match nicht abgeschlossen und BoF noch offen
+  // VF/HF: wenn kein pending Duell und Match nicht abgeschlossen
   // Finale: kein manueller "Neues Duell"-Button (SD wird automatisch nach DRAW angelegt)
-  const canAddDuel =
-    isAdmin && !isCompleted && !isFinal && nextPendingDuel === undefined && match.duels.length < 5
+  // Hinweis: bei Unentschieden wird das nächste Duell automatisch angelegt (kein Limit)
+  const canAddDuel = isAdmin && !isCompleted && !isFinal && nextPendingDuel === undefined
 
   function handleAddDuel() {
     startTransition(async () => {

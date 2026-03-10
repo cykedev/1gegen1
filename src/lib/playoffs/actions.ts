@@ -78,6 +78,7 @@ export async function startPlayoffs(leagueId: string): Promise<ActionResult> {
  * Aktualisiert den Siegstand und schließt den PlayoffMatch ab wenn nötig.
  * Bei abgeschlossenem PlayoffMatch: erstellt automatisch die nächste Runde.
  * Bei Finale-Gleichstand: erstellt ein Sudden-Death-Duell.
+ * Bei VF/HF-Unentschieden: legt automatisch das nächste Duell an.
  */
 export async function savePlayoffDuelResult(
   input: SavePlayoffDuelResultInput
@@ -270,9 +271,14 @@ export async function savePlayoffDuelResult(
   }
 
   // Nach der Transaktion: Folge-Aktionen
-  if (outcome === "DRAW" && match.round === "FINAL" && !isCorrection) {
-    // Finale-Gleichstand bei Erst-Erfassung → Sudden-Death-Duell anlegen
-    await addSuddenDeathDuel(match.id)
+  if (outcome === "DRAW" && !isCorrection) {
+    if (isFinal) {
+      // Finale-Gleichstand → Sudden-Death-Duell anlegen
+      await addExtraDuel(match.id, true)
+    } else {
+      // VF/HF-Unentschieden → nächstes Duell automatisch anlegen
+      await addExtraDuel(match.id, false)
+    }
   }
 
   // Wenn Korrektur ein abgeschlossenes Match wieder öffnet → leere Folge-Runden-Matches löschen
@@ -567,8 +573,11 @@ async function handleMatchCompletion(
   })
 }
 
-/** Legt ein neues Sudden-Death-Duell für ein Finale-Match an. */
-async function addSuddenDeathDuel(playoffMatchId: string): Promise<void> {
+/**
+ * Legt ein weiteres Duell nach Gleichstand an.
+ * isSuddenDeath=true für Finale-Verlängerung, false für VF/HF-Nachschuss.
+ */
+async function addExtraDuel(playoffMatchId: string, isSuddenDeath: boolean): Promise<void> {
   const lastDuel = await db.playoffDuel.findFirst({
     where: { playoffMatchId },
     orderBy: { duelNumber: "desc" },
@@ -579,7 +588,7 @@ async function addSuddenDeathDuel(playoffMatchId: string): Promise<void> {
     data: {
       playoffMatchId,
       duelNumber: (lastDuel?.duelNumber ?? 0) + 1,
-      isSuddenDeath: true,
+      isSuddenDeath,
     },
   })
 }
