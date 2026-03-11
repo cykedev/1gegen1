@@ -138,13 +138,21 @@ function LegTable({
                   <td
                     className={`px-2 py-3 sm:px-4 ${homeOutcome === "WIN" && !isVoid ? "bg-emerald-500/10" : ""}`}
                   >
-                    <ParticipantResult participant={m.homeParticipant} result={homeResult} isVoid={isVoid} />
+                    <ParticipantResult
+                      participant={m.homeParticipant}
+                      result={homeResult}
+                      isVoid={isVoid}
+                    />
                   </td>
                   <td
                     className={`px-2 py-3 sm:px-4 ${awayOutcome === "WIN" && !isVoid ? "bg-emerald-500/10" : ""}`}
                   >
                     {m.awayParticipant ? (
-                      <ParticipantResult participant={m.awayParticipant} result={awayResult} isVoid={isVoid} />
+                      <ParticipantResult
+                        participant={m.awayParticipant}
+                        result={awayResult}
+                        isVoid={isVoid}
+                      />
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}

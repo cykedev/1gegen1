@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 import { startPlayoffs } from "@/lib/playoffs/actions"
 
 interface Props {
@@ -29,7 +30,9 @@ export function StartPlayoffsButton({ leagueId, disabled, disabledReason }: Prop
     startTransition(async () => {
       const result = await startPlayoffs(leagueId)
       if ("error" in result) {
-        alert(typeof result.error === "string" ? result.error : "Fehler beim Starten der Playoffs.")
+        toast.error(
+          typeof result.error === "string" ? result.error : "Fehler beim Starten der Playoffs."
+        )
       }
     })
   }

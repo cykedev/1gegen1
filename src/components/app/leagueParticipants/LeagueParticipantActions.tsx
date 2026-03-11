@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 import {
   withdrawParticipant,
   revokeWithdrawal,
@@ -50,7 +51,7 @@ export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
       fd.append("reason", reason)
       const result = await withdrawParticipant(entry.id, null, fd)
       if ("error" in result) {
-        alert(typeof result.error === "string" ? result.error : "Fehler beim Rückzug.")
+        toast.error(typeof result.error === "string" ? result.error : "Fehler beim Rückzug.")
       } else {
         setWithdrawOpen(false)
         setReason("")
@@ -62,7 +63,9 @@ export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
     startTransition(async () => {
       const result = await revokeWithdrawal(entry.id)
       if ("error" in result) {
-        alert(typeof result.error === "string" ? result.error : "Fehler beim Rückgängigmachen.")
+        toast.error(
+          typeof result.error === "string" ? result.error : "Fehler beim Rückgängigmachen."
+        )
       }
     })
   }
@@ -71,7 +74,7 @@ export function LeagueParticipantActions({ entry, playoffsStarted }: Props) {
     startTransition(async () => {
       const result = await unenrollParticipant(entry.id)
       if ("error" in result) {
-        alert(typeof result.error === "string" ? result.error : "Fehler beim Entfernen.")
+        toast.error(typeof result.error === "string" ? result.error : "Fehler beim Entfernen.")
       }
     })
   }

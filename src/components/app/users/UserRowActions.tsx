@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 import { setUserActive } from "@/lib/users/actions"
 
 interface Props {
@@ -31,7 +32,7 @@ export function UserRowActions({ userId, userName, isActive }: Props) {
     startTransition(async () => {
       const result = await setUserActive(userId, !isActive)
       if ("error" in result) {
-        alert(result.error)
+        toast.error(typeof result.error === "string" ? result.error : "Fehler beim Statuswechsel.")
       }
     })
   }

@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 import { generateLeagueSchedule } from "@/lib/matchups/actions"
 
 interface Props {
@@ -28,7 +29,7 @@ export function GenerateScheduleButton({ leagueId, hasSchedule }: Props) {
     startTransition(async () => {
       const result = await generateLeagueSchedule(leagueId)
       if ("error" in result) {
-        alert(
+        toast.error(
           typeof result.error === "string" ? result.error : "Fehler bei der Spielplan-Generierung."
         )
       }

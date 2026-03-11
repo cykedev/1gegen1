@@ -70,7 +70,9 @@ function BucketTable({
               <td className="py-2 pr-4 tabular-nums text-muted-foreground">
                 {formatTime(bucket.lastAttemptAt)}
               </td>
-              <td className="py-2 tabular-nums text-muted-foreground">{formatTime(bucket.blockedUntil)}</td>
+              <td className="py-2 tabular-nums text-muted-foreground">
+                {formatTime(bucket.blockedUntil)}
+              </td>
             </tr>
           ))}
         </tbody>

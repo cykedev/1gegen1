@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
 import { setParticipantActive, updateParticipant } from "@/lib/participants/actions"
 import { ParticipantForm } from "./ParticipantForm"
 
@@ -42,7 +43,7 @@ export function ParticipantRowActions({
     startTransition(async () => {
       const result = await setParticipantActive(participantId, !isActive)
       if ("error" in result) {
-        alert(typeof result.error === "string" ? result.error : "Fehler beim Statuswechsel.")
+        toast.error(typeof result.error === "string" ? result.error : "Fehler beim Statuswechsel.")
       }
     })
   }
