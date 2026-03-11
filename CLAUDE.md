@@ -14,6 +14,7 @@ Vereinsinterne Liga-Verwaltungs-App für 1-gegen-1 Schützenwettkämpfe.
 → Technisch: `docs/technical.md`
 → Datenmodell: `docs/data-model.md`
 → Code Conventions: `docs/code-conventions.md`
+→ UI-Patterns: `docs/ui-patterns.md`
 → Offene Fragen: `docs/open-issues.md`
 → Aufgaben: `tasks/todo.md`
 → Lernlog: `tasks/lessons.md`

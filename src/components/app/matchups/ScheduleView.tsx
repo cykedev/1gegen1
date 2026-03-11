@@ -30,14 +30,15 @@ function participantName(p: MatchupParticipant): string {
 function ParticipantResult({
   participant,
   result,
+  isVoid = false,
 }: {
   participant: MatchupParticipant
   result: MatchResultSummary | undefined
+  isVoid?: boolean
 }) {
   const name = participantName(participant)
-  const isWithdrawn = participant.withdrawn
 
-  if (isWithdrawn) {
+  if (isVoid || participant.withdrawn) {
     return (
       <div>
         <span className="line-through text-muted-foreground">{name}</span>
@@ -83,7 +84,7 @@ function LegTable({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className="overflow-hidden rounded-lg border bg-card">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-muted/40">
@@ -135,15 +136,15 @@ function LegTable({
                   className={`transition-colors ${isVoid ? "opacity-50" : "hover:bg-muted/20"}`}
                 >
                   <td
-                    className={`px-2 py-3 sm:px-4 ${homeOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}
+                    className={`px-2 py-3 sm:px-4 ${homeOutcome === "WIN" && !isVoid ? "bg-emerald-500/10" : ""}`}
                   >
-                    <ParticipantResult participant={m.homeParticipant} result={homeResult} />
+                    <ParticipantResult participant={m.homeParticipant} result={homeResult} isVoid={isVoid} />
                   </td>
                   <td
-                    className={`px-2 py-3 sm:px-4 ${awayOutcome === "WIN" ? "bg-emerald-500/10" : ""}`}
+                    className={`px-2 py-3 sm:px-4 ${awayOutcome === "WIN" && !isVoid ? "bg-emerald-500/10" : ""}`}
                   >
                     {m.awayParticipant ? (
-                      <ParticipantResult participant={m.awayParticipant} result={awayResult} />
+                      <ParticipantResult participant={m.awayParticipant} result={awayResult} isVoid={isVoid} />
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}

@@ -30,7 +30,7 @@ export default async function ParticipantsPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border">
+      <div className="rounded-lg border bg-card">
         {active.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">
             Keine aktiven Teilnehmer vorhanden.
@@ -68,7 +68,7 @@ export default async function ParticipantsPage() {
       {inactive.length > 0 && (
         <div>
           <p className="mb-2 text-sm text-muted-foreground">Inaktiv ({inactive.length})</p>
-          <div className="rounded-lg border opacity-60">
+          <div className="rounded-lg border bg-card opacity-60">
             <div className="divide-y">
               {inactive.map((p) => (
                 <div key={p.id} className="flex items-center justify-between px-4 py-3">

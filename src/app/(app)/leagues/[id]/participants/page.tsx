@@ -85,7 +85,7 @@ export default async function LeagueParticipantsPage({ params }: Props) {
       {/* Aktive Teilnehmer */}
       <div>
         <h2 className="mb-2 text-sm font-medium">Eingeschrieben ({activeEntries.length})</h2>
-        <div className="rounded-lg border">
+        <div className="rounded-lg border bg-card">
           {activeEntries.length === 0 ? (
             <p className="px-4 py-8 text-center text-sm text-muted-foreground">
               Noch keine Teilnehmer eingeschrieben.
@@ -117,7 +117,7 @@ export default async function LeagueParticipantsPage({ params }: Props) {
             <UserMinus className="h-4 w-4" />
             Zurückgezogen ({withdrawnEntries.length})
           </div>
-          <div className="rounded-lg border opacity-70">
+          <div className="rounded-lg border bg-card opacity-70">
             <div className="divide-y">
               {withdrawnEntries.map((lp) => (
                 <div key={lp.id} className="flex items-center justify-between px-4 py-3">

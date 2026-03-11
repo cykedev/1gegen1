@@ -15,6 +15,9 @@ export default async function AdminUsersPage() {
     getAdminLoginRateLimitInsights(),
   ])
 
+  const active = users.filter((u) => u.isActive)
+  const inactive = users.filter((u) => !u.isActive)
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -30,14 +33,14 @@ export default async function AdminUsersPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border">
-        {users.length === 0 ? (
+      <div className="rounded-lg border bg-card">
+        {active.length === 0 ? (
           <p className="px-4 py-8 text-center text-sm text-muted-foreground">
             Keine Nutzer vorhanden.
           </p>
         ) : (
           <div className="divide-y">
-            {users.map((user) => (
+            {active.map((user) => (
               <div key={user.id} className="flex items-center justify-between px-4 py-3">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -50,20 +53,44 @@ export default async function AdminUsersPage() {
                     >
                       {user.role === "ADMIN" ? "Admin" : "Benutzer"}
                     </Badge>
-                    {!user.isActive && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        Inaktiv
-                      </Badge>
-                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
-                <UserRowActions userId={user.id} isActive={user.isActive} />
+                <UserRowActions userId={user.id} userName={user.name} isActive={user.isActive} />
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {inactive.length > 0 && (
+        <div>
+          <p className="mb-2 text-sm text-muted-foreground">Inaktiv ({inactive.length})</p>
+          <div className="rounded-lg border bg-card opacity-60">
+            <div className="divide-y">
+              {inactive.map((user) => (
+                <div key={user.id} className="flex items-center justify-between px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm line-through text-muted-foreground">
+                        {user.name ?? <span className="italic">Kein Name</span>}
+                      </span>
+                      <Badge
+                        variant={user.role === "ADMIN" ? "default" : "secondary"}
+                        className="text-xs"
+                      >
+                        {user.role === "ADMIN" ? "Admin" : "Benutzer"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  <UserRowActions userId={user.id} userName={user.name} isActive={user.isActive} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

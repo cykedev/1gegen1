@@ -9,7 +9,6 @@ import { MAX_USER_EMAIL_LENGTH } from "@/lib/authValidation"
 import type { ActionResult } from "@/lib/types"
 import type { AdminLoginRateLimitBucket, AdminLoginRateLimitInsights } from "@/lib/admin/types"
 
-
 const TOP_NOISY_WINDOW_HOURS = 24
 const TOP_NOISY_LIMIT = 10
 

@@ -40,7 +40,7 @@ export function StandingsTable({ rows }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border">
+    <div className="overflow-hidden rounded-lg border bg-card">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b bg-muted/40">
