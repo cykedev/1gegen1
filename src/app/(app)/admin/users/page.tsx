@@ -1,12 +1,19 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import { getUsers } from "@/lib/users/queries"
+import { getAdminLoginRateLimitInsights } from "@/lib/admin/actions"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { UserRowActions } from "@/components/app/users/UserRowActions"
+import { AdminLoginRateLimitTable } from "@/components/app/admin/AdminLoginRateLimitTable"
+import { AdminLoginRateLimitInsightsPanel } from "@/components/app/admin/AdminLoginRateLimitInsights"
 
 export default async function AdminUsersPage() {
-  const users = await getUsers()
+  const [users, rateLimitInsights] = await Promise.all([
+    getUsers(),
+    getAdminLoginRateLimitInsights(),
+  ])
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
@@ -57,6 +64,26 @@ export default async function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Aktive Login-Sperren ({rateLimitInsights.activeBlockedBuckets.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminLoginRateLimitTable buckets={rateLimitInsights.activeBlockedBuckets} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Login-Rate-Limit Insights</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AdminLoginRateLimitInsightsPanel insights={rateLimitInsights} />
+        </CardContent>
+      </Card>
     </div>
   )
 }
