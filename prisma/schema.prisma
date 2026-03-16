@@ -61,6 +61,30 @@ enum ImportSource {
   PDF
 }
 
+// ── Neue Enums (Phase 2+) ──────────────────────────────────────────────────
+
+enum CompetitionType {
+  LEAGUE // Liga mit Spielplan, Tabelle, Playoffs
+  EVENT  // Einmaliges Event (Kranzlschiessen)
+  SEASON // Langzeit-Wettbewerb (Jahrespreisschiessen)
+}
+
+enum ScoringMode {
+  RINGTEILER      // MaxRinge - Ringe + (Teiler * Faktor); niedrigster gewinnt
+  RINGS           // Gesamtringe (ganzzahlig); hoechster gewinnt
+  RINGS_DECIMAL   // Gesamtringe (Zehntelwertung); hoechster gewinnt
+  TEILER          // Teiler * Faktor; niedrigster gewinnt
+  DECIMAL_REST    // Nachkommastelle der Ringe summiert; hoechster gewinnt
+  TARGET_ABSOLUTE // Abweichung vom Zielwert; geringste gewinnt (nur EVENT)
+  TARGET_UNDER    // <= Zielwert bevorzugt, dann Abweichung; geringste gewinnt (nur EVENT)
+}
+
+enum TargetValueType {
+  TEILER        // Zielwert bezieht sich auf den (korrigierten) Teiler
+  RINGS         // Zielwert bezieht sich auf Gesamtringe (ganzzahlig)
+  RINGS_DECIMAL // Zielwert bezieht sich auf Gesamtringe (Zehntelwertung)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // User
 // ─────────────────────────────────────────────────────────────────────────────
@@ -111,18 +135,20 @@ model LoginRateLimitBucket {
 // isSystem-Disziplinen (LP, LG, LPA, LGA) werden via startup.ts angelegt,
 // sind nicht editierbar/archivierbar durch reguläre Admins.
 model Discipline {
-  id          String      @id @default(cuid())
-  name        String
-  scoringType ScoringType
+  id           String      @id @default(cuid())
+  name         String
+  scoringType  ScoringType
+  // Korrekturfaktor fuer gemischte Wertungen (z.B. LP=0.333, LG=1.0)
+  teilerFaktor Decimal     @db.Decimal(4, 3) @default(1.0)
   // MaxRinge/Seite wird aus scoringType abgeleitet: WHOLE→100, DECIMAL→109
   // isSystem: true → von startup.ts angelegt
-  isSystem    Boolean     @default(false)
+  isSystem     Boolean     @default(false)
   // Archiviert statt gelöscht — bestehende Ligaergebnisse bleiben lesbar
-  isArchived  Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  isArchived   Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
-  leagues     League[]
+  leagues      League[]
 
   @@index([isArchived])
 }

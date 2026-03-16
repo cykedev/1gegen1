@@ -1,6 +1,6 @@
-# 1-gegen-1 Liga
+# Ringwerk
 
-Vereinsinterne Liga-App für 1-gegen-1 Schützenwettkämpfe. Ligaverwaltung, Spielplanerstellung, Ergebniserfassung, Tabellenberechnung, Playoffs und Audit-Log in einer Web-App.
+Vereinsinterne Wettbewerbs-Plattform für Schützenvereine. Ligaverwaltung, Spielplanerstellung, Ergebniserfassung, Tabellenberechnung, Playoffs und Audit-Log in einer Web-App.
 
 ---
 

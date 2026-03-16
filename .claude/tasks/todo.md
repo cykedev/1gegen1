@@ -18,43 +18,44 @@ Iterativer Umbau von "1-gegen-1 Liga-App" zu "Ringwerk" — universelle Wettbewe
 **Ziel:** App heisst "Ringwerk", Disziplinen haben einen Teiler-Faktor, neue Enums vorbereitet.
 **Abhaengigkeiten:** Keine.
 **Risiko:** Gering — additive Aenderungen, kein bestehendes Feature bricht.
+**Status:** ABGESCHLOSSEN [2026-03-16]
 
 #### Schema & Migration
 
-- [ ] `prisma/schema.prisma` — `Discipline` um `teilerFaktor Decimal @default(1.0)` erweitern
-- [ ] `prisma/schema.prisma` — Neue Enums anlegen: `CompetitionType`, `ScoringMode`, `TargetValueType` (noch nicht referenziert, aber fuer Phase 2 vorbereitet)
-- [ ] `/migrate add-discipline-teiler-faktor`
+- [x] `prisma/schema.prisma` — `Discipline` um `teilerFaktor Decimal @default(1.0)` erweitern
+- [x] `prisma/schema.prisma` — Neue Enums anlegen: `CompetitionType`, `ScoringMode`, `TargetValueType` (noch nicht referenziert, aber fuer Phase 2 vorbereitet)
+- [x] `/migrate add-discipline-teiler-faktor`
 
 #### Types & Queries
 
-- [ ] `src/lib/disciplines/types.ts` — `teilerFaktor` in `DisciplineListItem` und `DisciplineDetail` aufnehmen
-- [ ] `src/lib/disciplines/queries.ts` — `teilerFaktor` in alle Select-Bloecke
+- [x] `src/lib/disciplines/types.ts` — `teilerFaktor` in `DisciplineListItem` und `DisciplineDetail` aufnehmen
+- [x] `src/lib/disciplines/queries.ts` — `teilerFaktor` in alle Select-Bloecke
 
 #### Actions
 
-- [ ] `src/lib/disciplines/actions.ts` — Zod-Schema fuer create/update um `teilerFaktor` erweitern (Decimal, min 0.001)
-- [ ] `src/lib/disciplines/systemDisciplines.ts` — Default-Faktoren: LP=0.333, LG=1.0, LPA=0.6, LGA=1.8
+- [x] `src/lib/disciplines/actions.ts` — Zod-Schema fuer create/update um `teilerFaktor` erweitern (Decimal, min 0.001)
+- [x] `src/lib/disciplines/systemDisciplines.ts` — Default-Faktoren: LP=0.333, LG=1.0, LPA=0.6, LGA=1.8
 
 #### Components & Pages
 
-- [ ] `src/components/app/disciplines/DisciplineForm.tsx` — Faktor-Feld (Number-Input, Label "Teiler-Faktor", Hilfstext mit Erklaerung)
-- [ ] `src/app/(app)/disciplines/page.tsx` — Faktor in der Disziplin-Liste anzeigen
+- [x] `src/components/app/disciplines/DisciplineForm.tsx` — Faktor-Feld (Number-Input, Label "Teiler-Faktor", Hilfstext mit Erklaerung)
+- [x] `src/app/(app)/disciplines/page.tsx` — Faktor in der Disziplin-Liste anzeigen
 
 #### Rename
 
-- [ ] `package.json` — name: "ringwerk"
-- [ ] Navigation/Shell — "Ringwerk" statt "1gegen1" im UI
-- [ ] `<title>` und Meta-Tags anpassen
-- [ ] README.md — Projekttitel aktualisieren
+- [x] `package.json` — name: "ringwerk"
+- [x] Navigation/Shell — "Ringwerk" statt "1gegen1" im UI
+- [x] `<title>` und Meta-Tags anpassen
+- [x] README.md — Projekttitel aktualisieren
 
 #### Tests & Qualitaet
 
-- [ ] Bestehende Discipline-Tests anpassen (neues Feld)
-- [ ] `/check` — alle Gates gruen
+- [x] Bestehende Discipline-Tests anpassen (neues Feld)
+- [x] `/check` — alle Gates gruen
 
 #### Finalisierung
 
-- [ ] `docs/` — Aenderungen dokumentieren
+- [x] `docs/` — Aenderungen dokumentieren
 
 ---
 

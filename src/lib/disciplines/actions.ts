@@ -9,6 +9,10 @@ import type { ActionResult } from "@/lib/types"
 const DisciplineSchema = z.object({
   name: z.string().min(1, "Name ist erforderlich").max(100, "Name zu lang"),
   scoringType: z.enum(["WHOLE", "DECIMAL"] as const, { message: "Ungültige Wertungsart" }),
+  teilerFaktor: z
+    .number({ message: "Teiler-Faktor muss eine Zahl sein" })
+    .min(0.001, "Teiler-Faktor muss mindestens 0.001 sein")
+    .max(9.999, "Teiler-Faktor darf maximal 9.999 sein"),
 })
 
 function revalidateDisciplinePaths(): void {
@@ -27,6 +31,7 @@ export async function createDiscipline(
   const parsed = DisciplineSchema.safeParse({
     name: formData.get("name"),
     scoringType: formData.get("scoringType"),
+    teilerFaktor: Number(formData.get("teilerFaktor")),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
@@ -53,6 +58,7 @@ export async function updateDiscipline(
   const parsed = DisciplineSchema.safeParse({
     name: formData.get("name"),
     scoringType: formData.get("scoringType"),
+    teilerFaktor: Number(formData.get("teilerFaktor")),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 

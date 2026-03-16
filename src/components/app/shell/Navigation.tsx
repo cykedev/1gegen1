@@ -53,7 +53,7 @@ export function Navigation({ role }: Props) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary">
             <Target className="h-4 w-4 text-foreground" />
           </div>
-          <span className="font-semibold">1-gegen-1 Liga</span>
+          <span className="font-semibold">Ringwerk</span>
         </div>
 
         {/* Desktop-Navigation */}

@@ -58,21 +58,30 @@ describe("createDiscipline", () => {
 
   it("liefert Fehler ohne Session", async () => {
     getAuthSessionMock.mockResolvedValue(null)
-    const result = await createDiscipline(null, makeFormData({ name: "LP", scoringType: "WHOLE" }))
+    const result = await createDiscipline(
+      null,
+      makeFormData({ name: "LP", scoringType: "WHOLE", teilerFaktor: "1.0" })
+    )
     expect(result).toEqual({ error: "Nicht angemeldet" })
     expect(createMock).not.toHaveBeenCalled()
   })
 
   it("liefert Fehler wenn kein Admin", async () => {
     getAuthSessionMock.mockResolvedValue(userSession)
-    const result = await createDiscipline(null, makeFormData({ name: "LP", scoringType: "WHOLE" }))
+    const result = await createDiscipline(
+      null,
+      makeFormData({ name: "LP", scoringType: "WHOLE", teilerFaktor: "1.0" })
+    )
     expect(result).toEqual({ error: "Keine Berechtigung" })
     expect(createMock).not.toHaveBeenCalled()
   })
 
   it("liefert Validierungsfehler bei leerem Namen", async () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
-    const result = await createDiscipline(null, makeFormData({ name: "", scoringType: "WHOLE" }))
+    const result = await createDiscipline(
+      null,
+      makeFormData({ name: "", scoringType: "WHOLE", teilerFaktor: "1.0" })
+    )
     expect(result).toMatchObject({ error: { name: expect.any(Array) } })
     expect(createMock).not.toHaveBeenCalled()
   })
@@ -81,20 +90,30 @@ describe("createDiscipline", () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
     const result = await createDiscipline(
       null,
-      makeFormData({ name: "LP", scoringType: "INVALID" })
+      makeFormData({ name: "LP", scoringType: "INVALID", teilerFaktor: "1.0" })
     )
     expect(result).toMatchObject({ error: { scoringType: expect.any(Array) } })
+  })
+
+  it("liefert Validierungsfehler bei ungültigem Teiler-Faktor", async () => {
+    getAuthSessionMock.mockResolvedValue(adminSession)
+    const result = await createDiscipline(
+      null,
+      makeFormData({ name: "LP", scoringType: "WHOLE", teilerFaktor: "0" })
+    )
+    expect(result).toMatchObject({ error: { teilerFaktor: expect.any(Array) } })
+    expect(createMock).not.toHaveBeenCalled()
   })
 
   it("legt Disziplin an und gibt success zurück", async () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
     const result = await createDiscipline(
       null,
-      makeFormData({ name: "Luftpistole", scoringType: "WHOLE" })
+      makeFormData({ name: "Luftpistole", scoringType: "WHOLE", teilerFaktor: "0.333" })
     )
     expect(result).toEqual({ success: true })
     expect(createMock).toHaveBeenCalledWith({
-      data: { name: "Luftpistole", scoringType: "WHOLE" },
+      data: { name: "Luftpistole", scoringType: "WHOLE", teilerFaktor: 0.333 },
     })
     expect(revalidatePathMock).toHaveBeenCalled()
   })
@@ -113,7 +132,7 @@ describe("updateDiscipline", () => {
     const result = await updateDiscipline(
       "d1",
       null,
-      makeFormData({ name: "LP", scoringType: "WHOLE" })
+      makeFormData({ name: "LP", scoringType: "WHOLE", teilerFaktor: "1.0" })
     )
     expect(result).toEqual({ error: "Nicht angemeldet" })
   })
@@ -124,7 +143,7 @@ describe("updateDiscipline", () => {
     const result = await updateDiscipline(
       "d1",
       null,
-      makeFormData({ name: "LP", scoringType: "WHOLE" })
+      makeFormData({ name: "LP", scoringType: "WHOLE", teilerFaktor: "1.0" })
     )
     expect(result).toEqual({ error: "Keine Berechtigung" })
   })
@@ -135,7 +154,7 @@ describe("updateDiscipline", () => {
     const result = await updateDiscipline(
       "d1",
       null,
-      makeFormData({ name: "LP", scoringType: "WHOLE" })
+      makeFormData({ name: "LP", scoringType: "WHOLE", teilerFaktor: "1.0" })
     )
     expect(result).toEqual({ error: "Disziplin nicht gefunden." })
   })
@@ -148,7 +167,7 @@ describe("updateDiscipline", () => {
     const result = await updateDiscipline(
       "d1",
       null,
-      makeFormData({ name: "LP", scoringType: "DECIMAL" })
+      makeFormData({ name: "LP", scoringType: "DECIMAL", teilerFaktor: "1.0" })
     )
 
     expect(result).toMatchObject({ error: expect.stringContaining("Wertungsart") })
@@ -163,7 +182,7 @@ describe("updateDiscipline", () => {
     const result = await updateDiscipline(
       "d1",
       null,
-      makeFormData({ name: "LP", scoringType: "DECIMAL" })
+      makeFormData({ name: "LP", scoringType: "DECIMAL", teilerFaktor: "1.8" })
     )
 
     expect(result).toEqual({ success: true })

@@ -170,7 +170,7 @@ src/
     disciplines/
       actions.ts
       queries.ts
-      systemDisciplines.ts    ← LP, LG, LPA, LGA Seed-Daten
+      systemDisciplines.ts    ← LP, LG, LPA, LGA Seed-Daten mit teilerFaktor
       types.ts
     users/
       actions.ts              ← Nutzer anlegen, bearbeiten, Passwort-Reset
@@ -263,7 +263,7 @@ if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung" }
 
 Wird vom Root-Layout bei jedem Request aufgerufen, führt aber nur einmal pro Prozess etwas aus:
 
-1. Standard-Disziplinen anlegen (LP, LG, LPA, LGA) – falls noch nicht vorhanden
+1. Standard-Disziplinen anlegen (LP=0.333, LG=1.0, LPA=0.6, LGA=1.8 teilerFaktor) – falls noch nicht vorhanden
 2. Admin-Account anlegen aus `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` – falls kein Admin existiert
 
 ---

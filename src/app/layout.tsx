@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "1-gegen-1 Liga",
-  description: "Vereinsinterne Liga-App für 1-gegen-1 Schützenwettkämpfe",
+  title: "Ringwerk",
+  description: "Vereinsinterne Wettbewerbs-Plattform für Schützenvereine",
 }
 
 // Die App nutzt Session- und DB-abhängige Serverlogik.

@@ -70,6 +70,27 @@ export function DisciplineForm({ discipline, action }: Props) {
         )}
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="teilerFaktor">Teiler-Faktor</Label>
+        <Input
+          id="teilerFaktor"
+          name="teilerFaktor"
+          type="number"
+          step="0.001"
+          min="0.001"
+          max="9.999"
+          defaultValue={discipline?.teilerFaktor?.toString() ?? "1.0"}
+          placeholder="z.B. 0.333"
+          disabled={isPending}
+        />
+        <p className="text-xs text-muted-foreground">
+          Korrekturfaktor für gemischte Wertungen. Teiler wird mit diesem Faktor multipliziert.
+        </p>
+        {fieldErrors?.teilerFaktor && (
+          <p className="text-sm text-destructive">{fieldErrors.teilerFaktor[0]}</p>
+        )}
+      </div>
+
       {generalError && <p className="text-sm text-destructive">{generalError}</p>}
 
       <div className="flex gap-2">

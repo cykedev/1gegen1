@@ -32,9 +32,12 @@
 ## Disziplinen
 
 - Mehrere Disziplinen parallel verfuegbar
-- Parameter je Disziplin: Name, Kuerzel, Wertungsart (Ganz-/Zehntelringe), Max.Ringe/Schuss
-- **teilerFaktor: Decimal (default 1.0)** — Korrekturfaktor fuer gemischte Wertungen
-- Vorinstallierte Systemdisziplinen:
+- Parameter je Disziplin: Name, Kuerzel, Wertungsart (Ganz-/Zehntelringe), Max.Ringe/Schuss, teilerFaktor
+- **teilerFaktor: Decimal(4,3)** mit Default 1.0 — Korrekturfaktor fuer gemischte Wertungen
+  - Gueltige Range: 0.001 bis 9.999 (min. 0.001, max. 9.999)
+  - Wird beim Erstellen/Bearbeiten in der UI als "Teiler-Faktor" angezeigt
+  - In Disziplin-Listen: Badge mit "Faktor X.XXX" (z.B. "Faktor 0.333")
+- Vorinstallierte Systemdisziplinen (automatisch angelegt beim ersten Start):
 
 | Kuerzel | Name | Wertungsart | teilerFaktor |
 |---------|------|-------------|-------------|

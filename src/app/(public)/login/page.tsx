@@ -51,7 +51,7 @@ export default function LoginPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-secondary">
             <Target className="h-6 w-6 text-foreground" />
           </div>
-          <h1 className="text-xl font-semibold tracking-tight">1-gegen-1 Liga</h1>
+          <h1 className="text-xl font-semibold tracking-tight">Ringwerk</h1>
           <p className="text-sm text-muted-foreground">Zugang nur für registrierte Nutzer.</p>
         </div>
 

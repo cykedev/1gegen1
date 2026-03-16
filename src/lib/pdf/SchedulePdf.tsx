@@ -285,7 +285,7 @@ export function SchedulePdf({
   const secondLeg = matchups.filter((m) => m.round === "SECOND_LEG")
 
   return (
-    <Document title={`${leagueName} – Spielplan`} author="Liga-App" creator="Liga-App">
+    <Document title={`${leagueName} – Spielplan`} author="Ringwerk" creator="Ringwerk">
       <Page size="A4" style={styles.page}>
         {/* Kopfzeile */}
         <PdfHeader

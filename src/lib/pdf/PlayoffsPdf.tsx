@@ -462,7 +462,7 @@ export function PlayoffsPdf({
   generatedAt,
 }: PlayoffsPdfProps): ReactElement {
   return (
-    <Document title={`${leagueName} – Playoffs`} author="Liga-App" creator="Liga-App">
+    <Document title={`${leagueName} – Playoffs`} author="Ringwerk" creator="Ringwerk">
       {/* Seite 1: Bracket (Querformat) */}
       <Page size="A4" orientation="landscape" style={styles.pageLandscape}>
         <PdfHeader
