@@ -1,4 +1,4 @@
-# Technische Anforderungen – Liga-App
+# Technische Anforderungen – Ringwerk
 
 ---
 
@@ -81,7 +81,7 @@
 - Formulare nutzen `useActionState` für Fehler-Feedback
 - Fachregeln serverseitig erzwungen – nicht nur im UI
 - Kein „silent fail": strukturierte `ActionResult`-Rückgaben mit klarem Erfolg-/Fehlersignal
-- **Datenisolation:** jeder DB-Zugriff filtert zwingend nach `userId`
+- **Keine userId-Isolation:** alle Fachdaten sind vereinsweit sichtbar; Zugangskontrolle via Rolle (ADMIN/USER)
 
 ### Modularität & Dateistruktur
 

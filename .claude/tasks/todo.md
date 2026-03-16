@@ -1,78 +1,342 @@
-# Aufgaben-Log – Liga-App
+# Aufgaben-Log – Ringwerk
 
 ---
 
 ## Aktuell
 
-### [2026-03-12] Feature: Konfigurierbare Regelsets pro Liga
+### Ringwerk-Umbau: Uebersicht
 
-**Ziel:** Wettkampfregeln (bisher hardkodiert) werden pro Liga konfigurierbar.
-**Ansatz:** 8 neue Inline-Felder auf `League`, Lock nach Spielplan-Generierung.
+Iterativer Umbau von "1-gegen-1 Liga-App" zu "Ringwerk" — universelle Wettbewerbs-Plattform.
+6 Phasen, jede Phase eigenstaendig lieferbar. Detaillierte Anforderungen in `features.md` und `data-model.md`.
 
-#### Layer 1: Schema
+**Voraussetzung:** App ist pre-launch, kein Migrationsdruck, aggressive Refactorings erlaubt.
 
-- [ ] `prisma/schema.prisma` — neuer Enum `GroupScoringMode { RINGTEILER, HIGHEST_RINGS }` + 8 neue Felder auf `League`:
-  - `shotsPerSide Int @default(10)`
-  - `groupScoringMode GroupScoringMode @default(RINGTEILER)`
-  - `playoffBestOf Int @default(3)` (Siege zum Weiterkommen VF/HF; 3 = Best-of-Five)
-  - `playoffQualThreshold Int @default(8)` (ab dieser TN-Anzahl → Viertelfinale)
-  - `playoffQualTopN1 Int @default(4)` (Qualifikanten für HF bei Direkteinstieg)
-  - `playoffQualTopN2 Int @default(8)` (Qualifikanten für VF)
-  - `finaleScoringMode GroupScoringMode @default(HIGHEST_RINGS)`
-  - `finaleHasSuddenDeath Boolean @default(true)`
+---
 
-#### Layer 2: Migration
+### Phase 1: Fundament (Rename + Disziplin-Faktor)
 
-- [ ] `/migrate add-league-ruleset` — Alle Defaults = bisheriges Verhalten → kein Datenverlust
+**Ziel:** App heisst "Ringwerk", Disziplinen haben einen Teiler-Faktor, neue Enums vorbereitet.
+**Abhaengigkeiten:** Keine.
+**Risiko:** Gering — additive Aenderungen, kein bestehendes Feature bricht.
 
-#### Layer 3: Types
+#### Schema & Migration
 
-- [ ] `src/lib/leagues/types.ts` — `LeagueDetail` + `LeagueListItem` um alle 8 Felder erweitern
+- [ ] `prisma/schema.prisma` — `Discipline` um `teilerFaktor Decimal @default(1.0)` erweitern
+- [ ] `prisma/schema.prisma` — Neue Enums anlegen: `CompetitionType`, `ScoringMode`, `TargetValueType` (noch nicht referenziert, aber fuer Phase 2 vorbereitet)
+- [ ] `/migrate add-discipline-teiler-faktor`
 
-#### Layer 4: Queries
+#### Types & Queries
 
-- [ ] `src/lib/leagues/queries.ts` — alle `select`-Blöcke um neue Felder erweitern
-- [ ] `src/lib/standings/queries.ts` — Liga-Ruleset an `calculateStandings()` weiterreichen
-- [ ] `src/lib/playoffs/queries.ts` — `finaleScoringMode` für Duell-Auswertung laden
+- [ ] `src/lib/disciplines/types.ts` — `teilerFaktor` in `DisciplineListItem` und `DisciplineDetail` aufnehmen
+- [ ] `src/lib/disciplines/queries.ts` — `teilerFaktor` in alle Select-Bloecke
 
-#### Layer 5: Actions
+#### Actions
 
-- [ ] `src/lib/leagues/actions.ts` — Zod-Schema erweitern + Lock-Logik in `updateLeague()` (Guard: wenn Matchups existieren → Ruleset-Felder ignorieren)
-- [ ] `src/lib/results/actions.ts` — `groupScoringMode` aus Liga laden + an `determineOutcome()` übergeben
-- [ ] `src/lib/playoffs/actions.ts` — `playoffBestOf`, `playoffQualThreshold`, `finaleScoringMode`, `finaleHasSuddenDeath` aus Liga laden + verwenden (Breaking: mehrere Stellen)
+- [ ] `src/lib/disciplines/actions.ts` — Zod-Schema fuer create/update um `teilerFaktor` erweitern (Decimal, min 0.001)
+- [ ] `src/lib/disciplines/systemDisciplines.ts` — Default-Faktoren: LP=0.333, LG=1.0, LPA=0.6, LGA=1.8
 
-#### Layer 6: Calculate (Breaking Points zuerst)
+#### Components & Pages
 
-- [ ] `src/lib/results/calculateResult.ts` — `determineOutcome(a, b, scoringMode?)` um optionalen Parameter erweitern; bei `HIGHEST_RINGS`: höhere Ringzahl gewinnt (kein Teiler-Vergleich)
-- [ ] `src/lib/playoffs/calculatePlayoffs.ts`:
-  - `isPlayoffMatchComplete(match, requiredWins)` — hardkodierte `3` durch Parameter ersetzen; Finale bleibt bei `1`
-  - `createFirstRoundMatchups(standings, ruleset)` — `playoffQualThreshold`, `playoffQualTopN1/2` als Parameter
-  - `determinePlayoffDuelWinner()` bleibt; Finale-Branching über `finaleScoringMode`
-- [ ] `src/lib/standings/calculateStandings.ts` — `scoringMode` an `determineOutcome()` durchreichen; Tiebreak-Sortierung bei `HIGHEST_RINGS` umkehren (höher = besser)
+- [ ] `src/components/app/disciplines/DisciplineForm.tsx` — Faktor-Feld (Number-Input, Label "Teiler-Faktor", Hilfstext mit Erklaerung)
+- [ ] `src/app/(app)/disciplines/page.tsx` — Faktor in der Disziplin-Liste anzeigen
 
-#### Layer 7: Components
+#### Rename
 
-- [ ] `src/components/app/leagues/LeagueForm.tsx` — neue "Regelset"-Sektion mit `<fieldset disabled={hasMatchups}>` + alle 8 Felder (Select, Number-Input, Select für Boolean); Sperrhinweis als `text-xs text-muted-foreground`
-- [ ] `src/components/app/playoffs/PlayoffMatchCard.tsx` — dynamische Labels: `shotsPerSide`-Text, `playoffBestOf`-Label (Best-of-N), Siege-bis-Weiterkommen-Text
-- [ ] `src/components/app/playoffs/PlayoffDuelResultDialog.tsx` — Titel-Text mit `shotsPerSide` statt hardkodiert "10 Schüsse"
-- [ ] `src/components/app/matchups/ScheduleView.tsx` — `groupScoringMode` für Ergebnis-Farbmarkierung
+- [ ] `package.json` — name: "ringwerk"
+- [ ] Navigation/Shell — "Ringwerk" statt "1gegen1" im UI
+- [ ] `<title>` und Meta-Tags anpassen
+- [ ] README.md — Projekttitel aktualisieren
 
-#### Layer 8: Pages
+#### Tests & Qualitaet
 
-- [ ] `src/app/(app)/leagues/new/page.tsx` + `leagues/[id]/edit/page.tsx` — `hasMatchups: boolean` prop an `LeagueForm` übergeben
-- [ ] `src/app/(app)/leagues/[id]/schedule/page.tsx` + `playoffs/page.tsx` — Ruleset-Felder weitergeben wo nötig
-
-#### Tests & Qualität
-
-- [ ] `src/lib/results/calculateResult.test.ts` — bestehende Tests anpassen (neuer Parameter) + neue Tests für `HIGHEST_RINGS`-Modus
-- [ ] `src/lib/playoffs/calculatePlayoffs.test.ts` — Tests parametrisieren (`bestOf`, `qualThreshold`) + neue Szenarien
-- [ ] `src/lib/standings/calculateStandings.test.ts` — `scoringMode`-Parameter + neue Tests
-- [ ] `src/lib/leagues/actions.test.ts` — Ruleset-Validierung + Lock-Logik testen
-- [ ] `/check` — alle Gates grün
+- [ ] Bestehende Discipline-Tests anpassen (neues Feld)
+- [ ] `/check` — alle Gates gruen
 
 #### Finalisierung
 
-- [ ] `docs/data-model.md` + `docs/features.md` — Regelset dokumentieren
+- [ ] `docs/` — Aenderungen dokumentieren
+
+---
+
+### Phase 2: Competition-Abstraktion
+
+**Ziel:** League → Competition verallgemeinern. Liga funktioniert danach exakt wie vorher, nur unter neuem Dach.
+**Abhaengigkeiten:** Phase 1 abgeschlossen.
+**Risiko:** HOCH — beruehrt fast jede Datei. Atomarer Rename, danach sofort `/check`.
+
+#### Schema & Migration
+
+- [ ] `prisma/schema.prisma` — `League` zu `Competition` umbenennen
+- [ ] `prisma/schema.prisma` — `type CompetitionType` Feld hinzufuegen (default LEAGUE)
+- [ ] `prisma/schema.prisma` — `LeagueParticipant` zu `CompetitionParticipant` umbenennen
+- [ ] `prisma/schema.prisma` — `CompetitionParticipant` um `disciplineId String?` und `isGuest Boolean @default(false)` erweitern
+- [ ] `prisma/schema.prisma` — Shared Felder auf Competition: `scoringMode`, `shotsPerSeries`, `disciplineId?`
+- [ ] `prisma/schema.prisma` — Liga-spezifische Felder (nullable): playoff-Config, Stichtage, finaleScoringMode, finaleHasSuddenDeath
+- [ ] `prisma/schema.prisma` — Event-spezifische Felder (nullable): eventDate, allowGuests, teamSize, targetValue, targetValueType
+- [ ] `prisma/schema.prisma` — Saison-spezifische Felder (nullable): minSeries, seasonStart, seasonEnd
+- [ ] `prisma/schema.prisma` — AuditLog: `leagueId` → `competitionId`
+- [ ] `/migrate rename-league-to-competition` (Rename-Migration, ggf. manuelles SQL)
+
+#### Types
+
+- [ ] `src/lib/leagues/types.ts` → `src/lib/competitions/types.ts` — rename + erweitern
+- [ ] `src/lib/leagueParticipants/types.ts` → `src/lib/competitionParticipants/types.ts`
+- [ ] Alle Imports in der gesamten Codebase aktualisieren
+
+#### Queries
+
+- [ ] `src/lib/leagues/queries.ts` → `src/lib/competitions/queries.ts` — Tabellenname + Felder anpassen
+- [ ] `src/lib/leagueParticipants/queries.ts` → `src/lib/competitionParticipants/queries.ts`
+- [ ] Alle Nested Selects in verwandten Modulen pruefen (Matchups, Results, Playoffs, AuditLog)
+
+#### Actions
+
+- [ ] `src/lib/leagues/actions.ts` → `src/lib/competitions/actions.ts`
+- [ ] `src/lib/leagueParticipants/actions.ts` → `src/lib/competitionParticipants/actions.ts`
+- [ ] Zod-Schemas: Discriminated Union nach CompetitionType (typ-spezifische Pflichtfelder)
+- [ ] Force-Delete: `leagueId` → `competitionId` in Kaskade
+
+#### Components
+
+- [ ] `src/components/app/leagues/` → `src/components/app/competitions/`
+- [ ] `src/components/app/leagueParticipants/` → `src/components/app/competitionParticipants/`
+- [ ] Alle internen Referenzen (Props, Imports) aktualisieren
+
+#### Pages & Routes
+
+- [ ] `src/app/(app)/leagues/` → `src/app/(app)/competitions/` (alle Unterseiten)
+- [ ] Navigation: Links aktualisieren
+- [ ] PDF-Routen: `api/leagues/` → `api/competitions/`
+
+#### Tests & Qualitaet
+
+- [ ] Alle bestehenden Tests auf neue Pfade/Namen migrieren
+- [ ] `/check` — alle Gates gruen
+
+#### Finalisierung
+
+- [ ] `docs/architecture.md` — Routen + Verzeichnisstruktur aktualisieren
+- [ ] `docs/` — Alle Referenzen League → Competition
+
+---
+
+### Phase 3: Universelle Scoring-Engine + Serie
+
+**Ziel:** MatchResult → Series. Eine Scoring-Engine fuer alle 7 Wertungsmodi. Faktor-Korrektur integriert.
+**Abhaengigkeiten:** Phase 2 abgeschlossen.
+**Risiko:** MITTEL — Berechnungslogik aendert sich, aber gut testbar (Pure Functions).
+
+#### Schema & Migration
+
+- [ ] `prisma/schema.prisma` — `MatchResult` zu `Series` umbenennen
+- [ ] `prisma/schema.prisma` — `Series` erweitern: `disciplineId String (FK)`, `shotCount Int`, `sessionDate DateTime`, `matchupId String? (FK, optional)`
+- [ ] `prisma/schema.prisma` — `totalRings` → `rings`, `bestTeiler` → `teiler` (Rename fuer Klarheit)
+- [ ] `/migrate rename-matchresult-to-series`
+
+#### Scoring-Engine (neues Modul)
+
+- [ ] `src/lib/scoring/calculateScore.ts` — universelle Score-Berechnung:
+  - `calculateCorrectedTeiler(teiler, faktor): number`
+  - `calculateRingteiler(rings, teiler, faktor, maxRings): number`
+  - `calculateScore(series, mode, discipline): number`
+- [ ] `src/lib/scoring/rankParticipants.ts` — generische Rangliste:
+  - `rankByScore(entries[], mode): RankedEntry[]`
+  - TARGET_UNDER: zweistufiges Ranking (≤ Zielwert zuerst)
+- [ ] `src/lib/scoring/types.ts` — ScoringInput, RankedEntry, etc.
+- [ ] `src/lib/scoring/calculateScore.test.ts` — parametrisierte Tests fuer alle 7 Modi + Faktor-Kombinationen
+- [ ] `src/lib/scoring/rankParticipants.test.ts` — Ranking-Tests inkl. TARGET-Modi
+
+#### Bestehende Logik migrieren
+
+- [ ] `src/lib/results/calculateResult.ts` — auf Scoring-Engine umstellen (`calculateRingteiler` + `determineOutcome` nutzen `scoring/`)
+- [ ] `src/lib/standings/calculateStandings.ts` — auf Scoring-Engine umstellen
+- [ ] `src/lib/results/calculateResult.test.ts` — Tests anpassen (neuer Parameter)
+- [ ] `src/lib/standings/calculateStandings.test.ts` — Tests anpassen
+
+#### Queries & Actions
+
+- [ ] `src/lib/results/actions.ts` — MatchResult-Referenzen → Series
+- [ ] `src/lib/results/queries.ts` (falls vorhanden) — anpassen
+- [ ] `src/lib/matchups/queries.ts` — Nested Select: MatchResult → Series
+
+#### Components
+
+- [ ] Ergebnisanzeige-Komponenten: MatchResult-Referenzen → Series
+- [ ] `ScheduleView.tsx` — anpassen
+
+#### Tests & Qualitaet
+
+- [ ] Alle bestehenden Calculate-Tests muessen gruen bleiben
+- [ ] Neue Tests fuer Scoring-Engine (Prioritaet: hohe Abdeckung)
+- [ ] `/check` — alle Gates gruen
+
+#### Finalisierung
+
+- [ ] `docs/data-model.md` — bestaetigen dass Berechnungsregeln korrekt dokumentiert sind
+
+---
+
+### Phase 4: Event-Modus (Kranzlschiessen)
+
+**Ziel:** Erster neuer Wettbewerbstyp voll funktional. Erstellen, Teilnehmer einschreiben, Serien erfassen, Rangliste anzeigen.
+**Abhaengigkeiten:** Phase 3 abgeschlossen (Scoring-Engine + Serie).
+**Risiko:** GERING — neuer Code, kein Refactoring. Nutzt die universelle Scoring-Engine.
+
+#### Types
+
+- [ ] `src/lib/competitions/types.ts` — Event-spezifische Typen: `EventDetail`, `EventConfig`
+
+#### Queries
+
+- [ ] `src/lib/competitions/queries.ts` — Event-spezifische Abfragen (aktive Events, Event-Detail mit Serien)
+
+#### Actions
+
+- [ ] `src/lib/competitions/actions.ts` — `createEvent`, `updateEvent` (Zod-Schema mit Event-Pflichtfeldern)
+- [ ] `src/lib/series/actions.ts` (neues Modul) — `saveEventSeries` (eine Serie pro Teilnehmer)
+
+#### Calculate
+
+- [ ] `src/lib/scoring/` — Event-Ranking: `rankEventParticipants(series[], competition)` mit Scoring-Engine
+- [ ] Faktor-Korrektur bei gemischten Disziplinen
+- [ ] TARGET-Modi Implementierung (falls noch nicht in Phase 3 abgedeckt)
+
+#### Components
+
+- [ ] Event-Erstellungs-Formular (CompetitionForm mit type=EVENT Feldern)
+- [ ] Event-Teilnehmer-Verwaltung (inkl. Gastschuetzen, Disziplinwahl)
+- [ ] Event-Serien-Erfassung (einfache Liste, eine Serie pro Teilnehmer)
+- [ ] Event-Rangliste (mit Faktor-Korrektur, Disziplin-Anzeige)
+
+#### Pages
+
+- [ ] `/competitions/new` — Event-Erstellung (type=EVENT im Formular)
+- [ ] `/competitions/[id]/series` — Serien-Erfassung fuer Events
+- [ ] `/competitions/[id]/ranking` — Rangliste
+
+#### Tests & Qualitaet
+
+- [ ] Scoring-Engine Tests fuer alle 7 Modi mit Event-Daten
+- [ ] TARGET_UNDER Ranking-Tests (zweistufig)
+- [ ] `/check` — alle Gates gruen
+
+#### Finalisierung
+
+- [ ] `docs/` aktualisieren
+
+---
+
+### Phase 5: Saison-Modus (Jahrespreisschiessen)
+
+**Ziel:** Langzeit-Wettbewerb mit Mehrfach-Wertung. Serien ueber Monate erfassen, Best-of-Logik, Mindestserien.
+**Abhaengigkeiten:** Phase 4 abgeschlossen (Event-Modus, Series-Infrastruktur).
+**Risiko:** GERING — neuer Code. Komplexitaet liegt in der Best-of-Auswertung (gut testbar).
+
+#### Types
+
+- [ ] `src/lib/competitions/types.ts` — Saison-spezifische Typen: `SeasonDetail`, `SeasonStandings`
+
+#### Actions
+
+- [ ] `src/lib/series/actions.ts` — `saveSeasonSeries` (mehrere Serien pro Teilnehmer, mit Datum + Disziplin)
+- [ ] `src/lib/competitions/actions.ts` — `createSeason`, `updateSeason`
+
+#### Calculate
+
+- [ ] `src/lib/scoring/calculateSeasonStandings.ts`:
+  - Beste Ringe pro Teilnehmer (hoechste Ringzahl einer einzelnen Serie)
+  - Bester Teiler pro Teilnehmer (niedrigster korrigierter Teiler einer einzelnen Serie)
+  - Bester Ringteiler pro Teilnehmer (niedrigster Ringteiler einer einzelnen Serie — Ringe + Teiler aus derselben Serie)
+  - Mindestserien-Filter (≥ minSeries)
+- [ ] `src/lib/scoring/calculateSeasonStandings.test.ts` — Tests:
+  - Beste Ringe und bester Teiler aus verschiedenen Serien
+  - Ringteiler aus derselben Serie
+  - Faktor-Korrektur bei verschiedenen Disziplinen
+  - Teilnehmer unter Mindestserien ausgegraut
+
+#### Components
+
+- [ ] Saison-Erstellungs-Formular (type=SEASON Felder)
+- [ ] Saison-Serien-Erfassung (Liste mit Datum, Disziplinwahl, Hinzufuegen-Flow)
+- [ ] Saison-Tabelle (3 Spalten: beste Ringe, bester Teiler, bester Ringteiler)
+- [ ] Fortschrittsanzeige pro Teilnehmer ("12 / 20 Serien")
+
+#### Pages
+
+- [ ] `/competitions/[id]/series` — Serien-Verwaltung (erweitert fuer Saison: Mehrfach-Eintraege, Datum)
+- [ ] `/competitions/[id]/standings` — Saison-Tabelle mit Mehrfach-Ranking
+
+#### Tests & Qualitaet
+
+- [ ] Saison-Standings-Tests (Prioritaet: Best-of-Logik + Faktor)
+- [ ] `/check` — alle Gates gruen
+
+#### Finalisierung
+
+- [ ] `docs/` aktualisieren
+
+---
+
+### Phase 6: Liga-Ausbau (Konfigurierbare Regelsets)
+
+**Ziel:** Volles konfigurierbares Regelset fuer Ligen innerhalb des Competition-Rahmens.
+**Abhaengigkeiten:** Phase 2 abgeschlossen (Competition-Abstraktion). Kann parallel zu Phase 4/5.
+**Risiko:** MITTEL — viele Breaking Points in bestehender Liga-Logik. Bereits detailliert geplant.
+
+Hinweis: Die Felder sind in Phase 2 bereits im Schema angelegt (nullable mit Defaults).
+Phase 6 implementiert die Logik und UI dafuer.
+
+#### Actions
+
+- [ ] `src/lib/competitions/actions.ts` — Zod-Schema um Regelset-Felder erweitern + Lock-Logik (wenn Matchups existieren → Regelset gesperrt)
+- [ ] `src/lib/results/actions.ts` — `scoringMode` aus Competition laden + an `determineOutcome()` uebergeben
+- [ ] `src/lib/playoffs/actions.ts` — `playoffBestOf`, `playoffQualThreshold`, `finaleScoringMode`, `finaleHasSuddenDeath` aus Competition laden + verwenden
+
+#### Calculate
+
+- [ ] `src/lib/results/calculateResult.ts` — `determineOutcome()` um `scoringMode` Parameter erweitern
+- [ ] `src/lib/playoffs/calculatePlayoffs.ts`:
+  - `isPlayoffMatchComplete(match, requiredWins)` — hardkodierte 3 durch Parameter
+  - `createFirstRoundMatchups(standings, ruleset)` — Qual-Parameter
+  - Finale: `finaleScoringMode` nutzen
+- [ ] `src/lib/standings/calculateStandings.ts` — `scoringMode` durchreichen; Sortierung bei RINGS umkehren
+
+#### Components
+
+- [ ] Competition-Formular — "Regelset"-Sektion mit `<fieldset disabled={hasMatchups}>` + Sperrhinweis
+- [ ] `PlayoffMatchCard.tsx` — dynamische Labels (Best-of-N, Schusszahl)
+- [ ] `PlayoffDuelResultDialog.tsx` — Titel mit `shotsPerSeries`
+- [ ] `ScheduleView.tsx` — `scoringMode` fuer Ergebnis-Farbmarkierung
+
+#### Tests & Qualitaet
+
+- [ ] `calculateResult.test.ts` — neuer Parameter + RINGS-Modus Tests
+- [ ] `calculatePlayoffs.test.ts` — parametrisierte Tests (bestOf, qualThreshold)
+- [ ] `calculateStandings.test.ts` — scoringMode-Parameter
+- [ ] `/check` — alle Gates gruen
+
+#### Finalisierung
+
+- [ ] `docs/` — Regelset dokumentieren
+
+---
+
+## Abgeschlossen
+
+### [2026-03-16] Ringwerk-Planung
+
+- [x] Konzeptionelle Diskussion: 3 Wettbewerbstypen (Liga, Event, Saison) definiert
+- [x] 7 Wertungsmodi definiert (inkl. Zielwert-Modi)
+- [x] Teiler-Faktor-Konzept geklaert (ein Faktor pro Disziplin)
+- [x] Name "Ringwerk" gewaehlt
+- [x] Iterationsplan (6 Phasen) erstellt
+- [x] Dokumentation aktualisiert: project-brief.md, features.md, data-model.md, todo.md
+
+---
+
+### [2026-03-12] Feature: Konfigurierbare Regelsets pro Liga
+
+**Status:** Geplant, nicht implementiert. → Aufgegangen in Phase 6 des Ringwerk-Umbaus.
 
 ---
 
@@ -85,216 +349,56 @@
 - [x] `docs/features.md` – Abschnitt „Liga endgültig löschen" ergänzt
 - [x] `docs/architecture.md` – `actions.ts`-Beschreibung aktualisiert
 
-**Review:** Admin kann eine Liga jetzt unabhängig von Status und Spielfortschritt komplett löschen. Gefahrenzone auf der Edit-Seite, AlertDialog mit Name-Bestätigung (case-sensitive). Kaskadenlöschung erfolgt manuell bottom-up in einer Transaktion (PlayoffDuelResults → PlayoffDuels → PlayoffMatches → MatchResults → Matchups → AuditLog → LeagueParticipants → League), da kein `onDelete: Cascade` im Schema definiert ist.
-
 ---
 
 ### [2026-03-10] Mobile-Optimierung: Playoffs-Seite
 
 - [x] `PlayoffMatchCard.tsx` – `CardHeader` / `CardContent` Padding: `px-6` → `px-4 sm:px-6`
 - [x] `PlayoffMatchCard.tsx` – Duell-Zeilen: `px-3` → `px-2 sm:px-3`
-- [x] `PlayoffMatchCard.tsx` – „ausstehend"-Placeholder-Text aus pending-Duell-Zeilen entfernt (alle Breakpoints)
-- [x] `PlayoffBracket.tsx` – Finale-Karte: `max-w-xs mx-auto sm:max-w-sm` für Single-Match-Runden; `sm:grid-cols-2` nur bei `matches.length > 1` aktiv
-- [x] `PlayoffDuelResultDialog.tsx` – „Eintragen"-Button icon-only auf Mobile (`hidden sm:inline` für Textlabel)
-- [x] `/check` grün (Lint ✅, Format ✅, 108 Tests ✅, TSC ✅)
-
-**Review:** Playoffs-Seite auf 375 px (iPhone) deutlich kompakter. Karten nutzen `px-4` statt `px-6` auf Mobile; Finale-Karte zentriert mit sichtbaren Rändern (`max-w-xs`). Kein Placeholder-Text mehr in offenen Duell-Zeilen. „Eintragen"-Button zeigt nur `+`-Icon auf Mobile, volles Label ab `sm`. Klassisches Responsive-Button-Muster konsistent mit Navigation.
+- [x] `PlayoffMatchCard.tsx` – „ausstehend"-Placeholder-Text entfernt
+- [x] `PlayoffBracket.tsx` – Finale-Karte: `max-w-xs mx-auto sm:max-w-sm`
+- [x] `PlayoffDuelResultDialog.tsx` – „Eintragen"-Button icon-only auf Mobile
+- [x] `/check` grün
 
 ---
 
 ### [2026-03-10] Refactor: Automatisches Duell bei VF/HF-Unentschieden
 
-- [x] `addSuddenDeathDuel` generalisiert zu `addExtraDuel(id, isSuddenDeath)` in `src/lib/playoffs/actions.ts`
-- [x] Bei VF/HF-Unentschieden: nächstes Duell wird automatisch angelegt (analog Finale Sudden Death)
-- [x] Hard-Limit von 5 Duellen pro Match in `PlayoffMatchCard.tsx` entfernt
-- [x] `docs/features.md` – Best-of-Five-Beschreibung aktualisiert (kein hartes Limit mehr)
-- [x] `docs/data-model.md` – Glossareintrag „Best-of-Five" aktualisiert
-
-**Review:** `addExtraDuel` übernimmt jetzt beide Fälle (Finale SD und VF/HF Draw). In VF/HF wird nach jedem Unentschieden automatisch ein weiteres Duell angelegt, bis ein Sieger feststeht. Das 5-Duelle-Limit im Client wurde entfernt, da es den automatischen Flow blockiert hätte.
+- [x] `addSuddenDeathDuel` generalisiert zu `addExtraDuel(id, isSuddenDeath)`
+- [x] Bei VF/HF-Unentschieden: nächstes Duell automatisch angelegt
+- [x] Hard-Limit von 5 Duellen pro Match entfernt
 
 ---
 
 ### [2026-03-09] Feature: Playoff-Phase
 
-- [x] src/lib/playoffs/types.ts (PlayoffDuelItem, PlayoffMatchItem, PlayoffBracketData, SavePlayoffDuelResultInput)
-- [x] src/lib/playoffs/calculatePlayoffs.ts (determinePlayoffDuelWinner, isPlayoffMatchComplete, createFirstRoundMatchups, createNextRoundMatchups)
-- [x] src/lib/playoffs/calculatePlayoffs.test.ts (22 Tests)
-- [x] src/lib/playoffs/queries.ts (getPlayoffBracket)
-- [x] src/lib/playoffs/actions.ts (startPlayoffs, savePlayoffDuelResult, addPlayoffDuel)
-- [x] src/components/app/playoffs/StartPlayoffsButton.tsx
-- [x] src/components/app/playoffs/PlayoffDuelResultDialog.tsx
-- [x] src/components/app/playoffs/PlayoffMatchCard.tsx
-- [x] src/components/app/playoffs/PlayoffBracket.tsx
-- [x] src/app/(app)/leagues/[id]/playoffs/page.tsx
-- [x] leagues/page.tsx + schedule/page.tsx – Playoffs-Link
-- [x] /check grün (Lint, Format, 105 Tests, TSC)
-
-**Review:** Playoff-Phase vollständig. Admin kann Playoffs starten (sobald keine PENDING-Paarungen mehr und ≥4 aktive TN). Bracket-Seeding: 4–7 TN → HF (1v4, 2v3), 8+ TN → VF (1v8, 2v7, 3v6, 4v5). VF/HF Best-of-Five: Einzelduelle werden manuell angelegt und eingetragen. Nächste Runde wird manuell vom Admin über „Halbfinale/Finale anlegen"-Button angesetzt. Finale: 1 Duell, Gleichstand → automatisches Sudden-Death-Duell. Korrekturen: Duell-Ergebnisse korrigierbar solange Folgerunde keine Duele hat; letztes Duell löschbar. Cascade-Delete leerer Folge-Matches bei Korrektur. Spieler-Rückzug nach Playoff-Start blockiert. Spielplan-Editierung nach Playoff-Start blockiert.
+- [x] Vollständige Playoff-Implementierung (Types, Calculate, Queries, Actions, Components, Pages)
+- [x] 22 Tests, `/check` grün
 
 ---
 
 ### [2026-03-09] Feature: Ergebniserfassung + Tabelle
 
-- [x] src/lib/results/types.ts (ResultInput, SaveMatchResultInput, MatchResultSummary)
-- [x] src/lib/results/calculateResult.ts (calcRingteiler, determineOutcome, MAX_RINGS)
-- [x] src/lib/results/calculateResult.test.ts (14 Tests)
-- [x] src/lib/results/actions.ts (saveMatchResult – Auth, Upsert, AuditLog bei Korrektur)
-- [x] src/lib/standings/calculateStandings.ts (Tabellenberechnung: Punkte, direkter Vergleich, best RT)
-- [x] src/lib/standings/calculateStandings.test.ts (10 Tests)
-- [x] src/lib/standings/queries.ts (getStandingsForLeague)
-- [x] src/lib/matchups/types.ts – MatchResultSummary + results[] in MatchupListItem
-- [x] src/lib/matchups/queries.ts – results-Select hinzugefügt (Decimal → number)
-- [x] src/components/app/results/ResultEntryDialog.tsx (Dialog, useState, useTransition)
-- [x] src/components/app/matchups/ScheduleView.tsx – Ergebnisanzeige + Eintragen/Korrigieren-Button
-- [x] src/components/app/standings/StandingsTable.tsx
-- [x] src/app/(app)/leagues/[id]/standings/page.tsx
-- [x] src/app/(app)/leagues/[id]/schedule/page.tsx – isAdmin, Tabellen-Link
-- [x] src/app/(app)/leagues/page.tsx – Tabellen-Link in aktiver + abgeschlossener Liga-Zeile
-- [x] /check grün (Lint, Format, 83 Tests, TSC)
-
-**Review:** Ergebniserfassung vollständig. Admin kann Ergebnisse (Gesamtringe + Teiler) für jede PENDING-Paarung eintragen. Ringteiler wird automatisch berechnet. COMPLETED-Paarungen können korrigiert werden (AuditLog). Tabelle wird aus allen COMPLETED-Paarungen berechnet (Punkte → direkter Vergleich → bester RT). Zurückgezogene Teilnehmer am Ende, ihre Duelle nicht gewertet. Nächster Schritt: Playoff-Phase.
+- [x] Vollständige Implementierung (ResultEntryDialog, ScheduleView, StandingsTable)
+- [x] 83 Tests, `/check` grün
 
 ---
 
 ### [2026-03-09] Feature: Spielplan-Generierung
 
-- [x] prisma/schema.prisma – `roundIndex Int` zu `Matchup` hinzugefügt
-- [x] Migration: `20260309115812_add_matchup_round_index`
-- [x] src/lib/matchups/types.ts (MatchupListItem, ScheduleStatus)
-- [x] src/lib/matchups/generateSchedule.ts (Circle-Method, Hin- + Rückrunde, Freilos)
-- [x] src/lib/matchups/generateSchedule.test.ts (16 Tests, alle grün)
-- [x] src/lib/matchups/queries.ts (getMatchupsForLeague, getScheduleStatus)
-- [x] src/lib/matchups/actions.ts (generateLeagueSchedule – Auth, Validierung, Transaktion)
-- [x] src/components/app/matchups/GenerateScheduleButton.tsx (AlertDialog, useTransition)
-- [x] src/components/app/matchups/ScheduleView.tsx (Tabellenansicht, Deadline am Header)
-- [x] src/app/(app)/leagues/[id]/schedule/page.tsx
-- [x] Navigation: leagues/page.tsx + leagues/[id]/participants/page.tsx verlinkt
-- [x] /check grün (Lint, Format, 59 Tests, TSC)
-
-**Review:** Spielplan-Feature vollständig. Admin kann für jede aktive Liga mit ≥4 Teilnehmern einen Doppelrunden-Spielplan (Round Robin, Circle Method) generieren. Ungerade Teilnehmerzahl → Freilos. Rückrunde spiegelt Heimrecht. Regenerierung möglich solange keine abgeschlossenen Paarungen. Anzeige als zwei flache Tabellen (Hin-/Rückrunde) mit Spieltag-Spalte und Deadline am Abschnittsheader. Nächster Schritt: Ergebniserfassung.
+- [x] Round-Robin mit Circle-Method, Hin-/Rückrunde, Freilos
+- [x] 59 Tests, `/check` grün
 
 ---
 
 ### [2026-03-09] Feature: Teilnehmer
 
-- [x] src/lib/participants/types.ts (ParticipantListItem, ParticipantDetail, ParticipantOption)
-- [x] src/lib/participants/queries.ts (getParticipants, getParticipantsForManagement, getParticipantById, getParticipantsNotInLeague)
-- [x] src/lib/participants/actions.ts (createParticipant, updateParticipant, setParticipantActive)
-- [x] src/lib/leagueParticipants/types.ts (LeagueParticipantListItem)
-- [x] src/lib/leagueParticipants/queries.ts (getLeagueParticipants)
-- [x] src/lib/leagueParticipants/actions.ts (enrollParticipant, unenrollParticipant, withdrawParticipant, revokeWithdrawal, updateStartNumber)
-- [x] src/components/app/participants/ParticipantForm.tsx
-- [x] src/components/app/participants/ParticipantRowActions.tsx
-- [x] src/components/app/leagueParticipants/EnrollParticipantForm.tsx
-- [x] src/components/app/leagueParticipants/LeagueParticipantActions.tsx
-- [x] src/app/(app)/participants/page.tsx
-- [x] src/app/(app)/participants/new/page.tsx
-- [x] src/app/(app)/participants/[id]/edit/page.tsx
-- [x] src/app/(app)/leagues/[id]/participants/page.tsx
-- [x] src/app/(app)/leagues/page.tsx – Teilnehmer-Link auf Liga-Zeile
-- [x] /check grün (Lint, Format, Test, TSC)
-
-**Review:** Teilnehmer-Feature vollständig. Admin kann Teilnehmer anlegen, bearbeiten und deaktivieren. Einschreibung in Ligen mit optionaler Startnummer. Rückzug mit Begründung + AuditLog-Eintrag. Rückzug rückgängig (gesperrt wenn Playoffs gestartet) + AuditLog. Aus Liga entfernen nur ohne Matchups. Ligen-Seite verlinkt direkt auf Teilnehmerverwaltung je Liga. Nächster Schritt: Spielplan-Generierung.
+- [x] CRUD, Einschreibung, Rückzug, Startnummer
+- [x] `/check` grün
 
 ---
 
-## Abgeschlossen
+### [2026-03-09] Projektinitialisierung + Tech Stack + Disziplinen + Nutzerverwaltung + Ligen + Datum
 
-### [2026-03-09] Projektinitialisierung
-
-- [x] Anforderungsdokument (SRS v1.5) analysiert
-- [x] CLAUDE.md erstellt (slim, orchestrierungsfokussiert)
-- [x] docs/features.md – funktionale Anforderungen
-- [x] docs/technical.md – technischer Stack & Architektur
-- [x] docs/data-model.md – Entitäten, Berechnungsregeln, Glossar
-- [x] docs/open-issues.md – offene Punkte aus SRS
-- [x] tasks/todo.md & tasks/lessons.md angelegt
-- [x] docs/code-conventions.md – Namenskonventionen, Enums (englisch), TS-Regeln, Testing
-
-**Review:** Projektstruktur aufgesetzt. Nächster Schritt: Tech Stack initialisieren (Next.js, Prisma, shadcn/ui) und Datenbankschema entwerfen.
-
-### [2026-03-09] Tech Stack Setup
-
-- [x] package.json, tsconfig.json, next.config.ts, prisma.config.ts
-- [x] eslint.config.mjs, .prettierrc, vitest.config.ts, postcss.config.mjs
-- [x] .gitignore, .env.example, components.json
-- [x] prisma/schema.prisma (vollständiges Datenmodell aus schema-draft.prisma)
-- [x] Dockerfile (multi-stage: deps → builder → migrator → runner)
-- [x] docker-compose.dev.yml (3 Services: db, migrate, app; Watch-Modus)
-- [x] scripts/ (run-migrations-with-recovery.sh, start-dev-with-migrations.sh, resolve-failed-migrations.mjs)
-- [x] src/lib/db.ts, auth.ts, auth-helpers.ts, startup.ts, authValidation.ts, utils.ts, types.ts
-- [x] src/lib/auth-rate-limit/ (config, types, normalization, store, limiter, index)
-- [x] src/proxy.ts (Next.js 16 Middleware)
-- [x] src/types/next-auth.d.ts
-- [x] src/app/layout.tsx, globals.css, (public)/login/page.tsx
-- [x] src/app/(app)/layout.tsx, page.tsx (Dashboard), admin/layout.tsx
-- [x] src/app/api/auth/[...nextauth]/route.ts
-- [x] src/components/app/shell/ (Providers, Navigation)
-- [x] src/components/ui/ (shadcn: button, card, input, label, ...)
-- [x] npm install + prisma generate
-- [x] Erste Migration: 20260309083153_init
-
-**Review:** Basis-Setup vollständig. Login, Auth-Guard, Admin-Seeding, Docker-Dev-Stack verifiziert. Nächster Schritt: erstes Feature implementieren (Disziplinen oder Teilnehmer).
-
-### [2026-03-09] Feature: Disziplinen
-
-- [x] src/lib/disciplines/types.ts (DisciplineUsage)
-- [x] src/lib/disciplines/queries.ts (getDisciplines, getDisciplinesForManagement, getDisciplineById)
-- [x] src/lib/disciplines/actions.ts (create, update, setArchived, delete)
-- [x] src/lib/disciplines/systemDisciplines.ts (ensureSystemDisciplines – LP, LG, LPA, LGA)
-- [x] src/lib/startup.ts – ensureSystemDisciplines eingebunden
-- [x] src/components/app/disciplines/DisciplineForm.tsx
-- [x] src/components/app/disciplines/DisciplineActions.tsx (Dropdown: bearbeiten, archivieren, löschen)
-- [x] src/components/ui/dropdown-menu.tsx (neues shadcn-Komponente)
-- [x] src/app/(app)/disciplines/page.tsx
-- [x] src/app/(app)/disciplines/new/page.tsx
-- [x] src/app/(app)/disciplines/[id]/edit/page.tsx
-- [x] /check grün (Lint, Format, Test, TSC)
-
-**Review:** Disziplinen-Feature vollständig. Systemdisziplinen werden beim ersten App-Start automatisch angelegt. Admin kann eigene Disziplinen anlegen, bearbeiten, archivieren und löschen. Nächster Schritt: Teilnehmer-Feature.
-
-### [2026-03-09] Feature: Nutzerverwaltung + Account
-
-- [x] src/lib/users/types.ts
-- [x] src/lib/users/queries.ts (getUsers, getUserById)
-- [x] src/lib/users/actions.ts (createUser, updateUser, setUserActive, changeOwnPassword)
-- [x] src/components/app/users/UserCreateForm.tsx
-- [x] src/components/app/users/UserEditForm.tsx
-- [x] src/components/app/users/UserRowActions.tsx (Aktivieren/Deaktivieren, Bearbeiten)
-- [x] src/app/(app)/admin/users/page.tsx
-- [x] src/app/(app)/admin/users/new/page.tsx
-- [x] src/app/(app)/admin/users/[id]/edit/page.tsx
-- [x] src/app/(app)/account/page.tsx (Passwort ändern)
-- [x] src/components/app/account/AccountPasswordForm.tsx
-- [x] src/components/app/shell/Navigation.tsx (Admin-Nav + Mobile-Nav erweitert)
-- [x] src/lib/disciplines/actions.test.ts (Unit-Tests für Disziplinen-Actions)
-
-**Review:** Nutzerverwaltung vollständig. Admin kann Nutzer anlegen, bearbeiten, (de)aktivieren und Passwort zurücksetzen. Letzter aktiver Admin und eigener Account sind gegen Deaktivierung geschützt. Passwortänderung invalidiert alle aktiven Sessions via sessionVersion. Jeder Nutzer kann sein eigenes Passwort unter /account ändern. Nächster Schritt: Liga-Feature.
-
-### [2026-03-09] Feature: Ligen
-
-- [x] src/lib/leagues/types.ts (LeagueListItem, LeagueDetail)
-- [x] src/lib/leagues/queries.ts (getLeagues, getLeaguesForManagement, getLeagueById)
-- [x] src/lib/leagues/actions.ts (createLeague, updateLeague, setLeagueStatus, deleteLeague)
-- [x] src/lib/leagues/actions.test.ts (43 Tests, alle grün)
-- [x] src/components/app/leagues/LeagueForm.tsx
-- [x] src/components/app/leagues/LeagueActions.tsx (Dropdown: bearbeiten, abschliessen, wieder öffnen, archivieren, wiederherstellen, löschen)
-- [x] src/app/(app)/leagues/page.tsx
-- [x] src/app/(app)/leagues/new/page.tsx
-- [x] src/app/(app)/leagues/[id]/edit/page.tsx
-- [x] /check grün (Lint, Format, Test, TSC)
-
-**Review:** Liga-Feature vollständig. Admin kann Ligen anlegen, bearbeiten und löschen (nur ohne abhängige Daten). Statusübergänge bidirektional: ACTIVE ↔ COMPLETED ↔ ARCHIVED (direkt ACTIVE → ARCHIVED bleibt blockiert). Disziplin nach Erstellung unveränderlich. Stichtage optional. Nächster Schritt: Teilnehmer-Feature (inkl. Liga-Einschreibung).
-
-### [2026-03-09] Datum & Zeitzone
-
-- [x] src/lib/dateTime.ts (server-only; getDisplayTimeZone, formatDateOnly via Intl.DateTimeFormat)
-- [x] leagues/page.tsx – toLocaleDateString ersetzt durch formatDateOnly(date, tz)
-- [x] .env.example – DISPLAY_TIME_ZONE=Europe/Berlin dokumentiert
-- [x] docker-compose.dev.yml – DISPLAY_TIME_ZONE=Europe/Berlin im App-Service eingetragen
-- [x] docs/technical.md – Abschnitt «Datum & Zeitzone» ergänzt
-- [x] docs/code-conventions.md – Regel und Beispiele für formatDateOnly dokumentiert
-- [x] README.md – DISPLAY_TIME_ZONE in Konfigurationstabelle + Projektstruktur
-- [x] /check grün (Lint, Format, Test, TSC)
-
-**Review:** UTC/Timezone-Pattern von treffsicher übernommen. Alle Datumsanzeigen nutzen jetzt `formatDateOnly(date, tz)` mit expliziter IANA-Zeitzone. `toLocaleDateString` ohne Zeitzone ist verboten (würde in Docker UTC anzeigen). Nächster Schritt: Teilnehmer-Feature.
+- [x] Komplettes Basis-Setup: Next.js 16, Prisma 7, Auth, Docker, shadcn/ui
+- [x] Alle Basis-Features implementiert

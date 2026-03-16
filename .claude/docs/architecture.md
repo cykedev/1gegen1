@@ -1,4 +1,4 @@
-# Architektur – 1-gegen-1 Liga-App
+# Architektur – Ringwerk
 
 Verbindlich gleichrangig mit `.claude/docs/technical.md`. Neue Dateien immer gemäss dieser Struktur anlegen.
 
@@ -230,7 +230,9 @@ export const config = {
 | ------------- | ----------------------------------------- | -------------------- |
 | `(public)`    | kein Auth-Check                           | Login-Seite          |
 | `(app)`       | `getAuthSession()` → `redirect("/login")` | alle normalen Seiten |
-| `(app)/admin` | zusätzlich Rollen-Check                   | nur ADMIN            |
+| `(app)/admin` | zusätzlich Rollen-Check                   | nur ADMIN (nicht MANAGER) |
+
+**MANAGER vs. ADMIN:** MANAGER hat Zugang zu allen `(app)`-Seiten (Wettbewerbe, Teilnehmer, Disziplinen, Ergebnisse). Kein Zugang zu `(app)/admin` (Nutzerverwaltung). Force-Delete wird in Server Actions via Rollen-Check blockiert, nicht via Route.
 
 ### `(app)/layout.tsx` – Auth-Guard
 

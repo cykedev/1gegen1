@@ -1,4 +1,4 @@
-# UI-Patterns – 1-gegen-1 Liga-App
+# UI-Patterns – Ringwerk
 
 Verbindlich für alle neuen und bestehenden UI-Komponenten.
 Referenzimplementierungen sind die zuerst genannten Dateien.

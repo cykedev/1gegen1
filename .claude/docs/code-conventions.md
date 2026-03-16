@@ -1,4 +1,4 @@
-# Code Conventions – 1-gegen-1 Liga-App
+# Code Conventions – Ringwerk
 
 Verbindlich gleichrangig mit `.claude/docs/technical.md`.
 
@@ -86,11 +86,49 @@ SEMI_FINAL
 FINAL
 ```
 
+### Wettbewerbstyp (NEU)
+
+```
+LEAGUE     – Liga mit Spielplan, Tabelle, Playoffs
+EVENT      – Einmaliges Event (Kranzlschiessen)
+SEASON     – Langzeit-Wettbewerb (Jahrespreisschiessen)
+```
+
+### Wertungsmodus (NEU)
+
+```
+RINGTEILER       – MaxRinge - Ringe + (Teiler * Faktor); niedrigster gewinnt
+RINGS            – Gesamtringe ganzzahlig; hoechster gewinnt
+RINGS_DECIMAL    – Gesamtringe Zehntelwertung; hoechster gewinnt
+TEILER           – Teiler * Faktor; niedrigster gewinnt
+DECIMAL_REST     – Nachkommastelle summiert; hoechster gewinnt
+TARGET_ABSOLUTE  – Abweichung vom Zielwert; geringste gewinnt
+TARGET_UNDER     – ≤ Zielwert bevorzugt, dann Abweichung
+```
+
+### Zielwert-Typ (NEU, nur bei TARGET-Modi)
+
+```
+TEILER          – Zielwert bezieht sich auf korrigierten Teiler
+RINGS           – Zielwert bezieht sich auf Ringe (ganzzahlig)
+RINGS_DECIMAL   – Zielwert bezieht sich auf Ringe (Zehntelwertung)
+```
+
+### Wettbewerb-Status (ersetzt Liga-Status)
+
+```
+DRAFT       – in Vorbereitung
+ACTIVE
+COMPLETED
+ARCHIVED
+```
+
 ### Nutzer-Rolle
 
 ```
-ADMIN
-USER
+ADMIN      – Vollzugriff inkl. Nutzerverwaltung und Force-Delete
+MANAGER    – Wettbewerbe + Ergebnisse + Teilnehmer verwalten; kein Zugriff auf /admin/
+USER       – Read-only (Ergebnisse, Tabellen einsehen)
 ```
 
 ### Ergebnis-Importquelle
@@ -267,22 +305,21 @@ export async function createMatchResult(
 
 ## Datenbankzugriffe
 
-- **Immer `userId` filtern**: Jede `findMany`, `findFirst`, `update`, `delete` enthält `where: { userId: session.user.id }`
+- **Kein userId-Filter auf Fachdaten** — alle Wettbewerbs-, Teilnehmer- und Disziplindaten sind vereinsweit sichtbar; Zugangskontrolle erfolgt via Rolle (ADMIN/USER), nicht via userId
 - **Kein direkter Prisma-Aufruf in Komponenten** – nur in `lib/*/` oder Server Actions
 - **Keine rohen SQL-Queries** ausser für komplexe Statistiken, dann mit Kommentar
 
 ```typescript
-// RICHTIG
-const matches = await db.match.findMany({
-  where: {
-    userId: session.user.id, // Datenisolation
-    leagueId,
-  },
+// RICHTIG — vereinsweite Daten, gefiltert nach fachlichem Kontext
+const series = await db.series.findMany({
+  where: { competitionId },
   orderBy: { createdAt: "desc" },
 })
 
-// FALSCH – kein userId-Filter
-const matches = await db.match.findMany()
+// FALSCH — userId-Filter auf Vereinsdaten
+const series = await db.series.findMany({
+  where: { userId: session.user.id },
+})
 ```
 
 ---

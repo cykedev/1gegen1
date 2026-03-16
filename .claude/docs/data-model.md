@@ -1,106 +1,297 @@
-# Datenmodell & Glossar – Liga-App
+# Datenmodell & Glossar – Ringwerk
 
 ---
 
-## Kernentitäten (konzeptionell)
+## Kernentitaeten (Zielzustand)
 
 ### Benutzer (User)
 
-- E-Mail, Passwort (bcrypt), Rolle (Admin | Benutzer), Status
-- Datenisolation: alle untergeordneten Entitäten gehören einem User
+- E-Mail, Passwort (bcrypt), Rolle (ADMIN | MANAGER | USER), Status
+- Vereinsweite Daten — kein userId-Filter auf Fachdaten
+- MANAGER: kann Wettbewerbe, Ergebnisse, Teilnehmer und Disziplinen verwalten; kein Zugriff auf Nutzerverwaltung (/admin/) und Force-Delete
 
-### Disziplin
+### Disziplin (Discipline)
 
-- Name, Wertungsart (GANZRING | ZEHNTELRING), Max.Ringe/Schuss, Schiessabende
+- Name, Kuerzel, Wertungsart (WHOLE | DECIMAL), Max.Ringe/Schuss
+- **teilerFaktor: Decimal (default 1.0)** — Korrekturfaktor fuer gemischte Wertungen
 - Status: aktiv | archiviert
-- Archiviert wenn Ligaergebnisse vorhanden (niemals gelöscht)
+- Systemdisziplinen: LP (0.333), LG (1.0), LPA (0.6), LGA (1.8)
 
-### Liga
+### Wettbewerb (Competition) — ersetzt Liga
 
-- Verknüpft mit einer Disziplin (unveränderlich nach Erstellung)
-- Status: aktiv | abgeschlossen | archiviert
-- Stichtage für Hin- und Rückrunde
+- **type: CompetitionType** (LEAGUE | EVENT | SEASON) — bestimmt Verhalten und UI
+- Name, Status (DRAFT | ACTIVE | COMPLETED | ARCHIVED)
+- **scoringMode: ScoringMode** — primaerer Wertungsmodus (bei Liga: Gruppenphase)
+- **shotsPerSeries: Int (default 10)** — Schusszahl pro Serie
+- **disciplineId: String?** — null = gemischte Disziplinen (Faktor-Korrektur aktiv)
+- Typ-spezifische Felder (nullable, nur relevant fuer jeweiligen Typ):
 
-### Teilnehmer
+#### Liga-spezifisch (LEAGUE)
 
-- Name, Vorname, Kontaktmöglichkeit (E-Mail oder Telefon, Pflicht)
-- Startnummer pro Saison/Liga
-- Kann in mehreren Ligen eingeschrieben sein
-- Status: aktiv | zurückgezogen
+| Feld | Typ | Default | Beschreibung |
+|------|-----|---------|-------------|
+| roundDeadlineHin | DateTime? | null | Stichtag Hinrunde |
+| roundDeadlineRueck | DateTime? | null | Stichtag Rueckrunde |
+| groupScoringMode | ScoringMode? | RINGTEILER | Wertungsmodus Gruppenphase (= scoringMode) |
+| playoffBestOf | Int? | 3 | Siege zum Weiterkommen VF/HF (3 = Best-of-Five) |
+| playoffQualThreshold | Int? | 8 | Ab dieser TN-Zahl → Viertelfinale |
+| playoffQualTopN1 | Int? | 4 | Qualifikanten fuer HF bei Direkteinstieg |
+| playoffQualTopN2 | Int? | 8 | Qualifikanten fuer VF |
+| finaleScoringMode | ScoringMode? | RINGS | Wertungsmodus Finale |
+| finaleHasSuddenDeath | Boolean? | true | Sudden Death bei Finale-Gleichstand |
 
-### Spielplan / Paarung (Matchup)
+#### Event-spezifisch (EVENT)
 
-- Heimschütze, Gastschütze, Runde (Hin/Rück), Status (offen | abgeschlossen | Freilos | kampflos)
-- Stichtag
+| Feld | Typ | Default | Beschreibung |
+|------|-----|---------|-------------|
+| eventDate | DateTime? | null | Veranstaltungsdatum |
+| allowGuests | Boolean? | false | Gastteilnehmer erlaubt |
+| teamSize | Int? | null | null = Einzel; 2+ = Teamgroesse |
+| targetValue | Decimal? | null | Zielwert (nur TARGET_ABSOLUTE / TARGET_UNDER) |
+| targetValueType | TargetValueType? | null | TEILER, RINGS oder RINGS_DECIMAL |
 
-### Duell-Ergebnis (Result)
+#### Saison-spezifisch (SEASON)
 
-- Verknüpft mit Paarung und Schütze
-- Einzelschüsse 1–10 (optional), Gesamtringe, Teiler, berechneter Ringteiler
-- Meyton-Import-Quelle (URL | PDF | manuell)
-- Erfasst von (User), Zeitstempel, letzte Änderung
+| Feld | Typ | Default | Beschreibung |
+|------|-----|---------|-------------|
+| minSeries | Int? | 20 | Mindestanzahl Serien fuer Wertung |
+| seasonStart | DateTime? | null | Saisonbeginn |
+| seasonEnd | DateTime? | null | Saisonende |
 
-### Playoff-Paarung
+### Wettbewerbs-Teilnehmer (CompetitionParticipant) — ersetzt LeagueParticipant
 
-- Runde (VF | HF | Finale), Schütze A, Schütze B
-- Best-of-Five-Stand (Siege A, Siege B)
-- Einzelne Duelle mit je eigenem Ergebnis
+- competitionId, participantId
+- **disciplineId: String?** — individuelle Disziplinwahl bei gemischten Wettbewerben; null bei disziplin-gebundenen
+- startNumber: Int?
+- status: ACTIVE | WITHDRAWN
+- **isGuest: Boolean (default false)** — Gastteilnehmer bei Events
+- withdrawalReason, withdrawnAt
+
+### Teilnehmer (Participant)
+
+- Name, Vorname, Kontaktmoeglichkeit (E-Mail oder Telefon, Pflicht)
+- Status: aktiv | inaktiv
+- Kann in mehreren Wettbewerben eingeschrieben sein
+- Gaeste werden ebenfalls als Participant angelegt (wiederverwendbar)
+
+### Serie (Series) — ersetzt MatchResult
+
+Universelle Ergebniseinheit fuer alle Wettbewerbstypen:
+
+- **competitionParticipantId: String (FK)** — Zuordnung zu Teilnehmer im Wettbewerb
+- **disciplineId: String (FK)** — geschossene Disziplin (wichtig bei gemischten Wettbewerben)
+- **rings: Decimal** — Gesamtringe der Serie
+- **teiler: Decimal** — bester Teiler der Serie
+- **shotCount: Int** — Anzahl Schuesse (default aus Competition.shotsPerSeries)
+- **sessionDate: DateTime** — Schiessdatum (relevant fuer Saison-Modus)
+- **matchupId: String? (FK)** — nur bei Liga: Verknuepfung zur Paarung
+
+### Paarung (Matchup) — nur Liga
+
+- competitionId, roundIndex, homeId, awayId, status
+- Unveraendert gegenueber bisherigem Modell (nur FK-Referenz Competition statt League)
+
+### Playoff-Strukturen — nur Liga
+
+- PlayoffMatch, PlayoffDuel, PlayoffDuelResult
+- Unveraendert gegenueber bisherigem Modell (nur FK-Referenz Competition statt League)
 
 ### Audit-Log
 
-- Pflichtfelder: Ereignistyp, betroffene Entität (`entityId`), auslösender User, Zeitstempel, Details (JSON)
-- Optionale Liga-Referenz: `leagueId` (FK auf `League`); gesetzt für alle liga-spezifischen Ereignisse
-- 8 protokollierte Ereignistypen:
-  - `PARTICIPANT_WITHDRAWN`, `WITHDRAWAL_REVOKED` — Teilnehmer-Rückzug
-  - `RESULT_ENTERED`, `RESULT_CORRECTED` — Gruppenphase-Ergebnisse
-  - `PLAYOFFS_STARTED`, `PLAYOFF_RESULT_ENTERED`, `PLAYOFF_RESULT_CORRECTED`, `PLAYOFF_DUEL_DELETED` — Playoff-Phase
-- Details-JSON enthält Kontext zum Schreibzeitpunkt:
-  - Gruppenphase: `homeName`, `awayName`, Runde, Ringteiler-Werte
-  - Playoffs: `nameA`, `nameB`, Match-Runde, Duell-Nummer
-- Beim Force-Delete einer Liga: alle zugehörigen AuditLog-Einträge werden via `leagueId` gelöscht (kein `onDelete: Cascade` im Schema — manuelle Transaktion)
+- Wie bisher, aber `leagueId` wird zu `competitionId`
+- Neue Ereignistypen fuer Event und Saison nach Bedarf
+
+---
+
+## Enums (Zielzustand)
+
+### CompetitionType (NEU)
+
+```
+LEAGUE    – Liga mit Spielplan, Tabelle, Playoffs
+EVENT     – Einmaliges Event (Kranzlschiessen)
+SEASON    – Langzeit-Wettbewerb (Jahrespreisschiessen)
+```
+
+### ScoringMode (NEU)
+
+```
+RINGTEILER       – MaxRinge - Ringe + (Teiler * Faktor); niedrigster gewinnt
+RINGS            – Gesamtringe (ganzzahlig); hoechster gewinnt
+RINGS_DECIMAL    – Gesamtringe (Zehntelwertung); hoechster gewinnt
+TEILER           – Teiler * Faktor; niedrigster gewinnt
+DECIMAL_REST     – Nachkommastelle der Ringe summiert; hoechster gewinnt
+TARGET_ABSOLUTE  – Abweichung vom Zielwert; geringste gewinnt (nur EVENT)
+TARGET_UNDER     – ≤ Zielwert bevorzugt, dann Abweichung; geringste gewinnt (nur EVENT)
+```
+
+### TargetValueType (NEU, nur bei TARGET-Modi)
+
+```
+TEILER          – Zielwert bezieht sich auf den (korrigierten) Teiler
+RINGS           – Zielwert bezieht sich auf Gesamtringe (ganzzahlig)
+RINGS_DECIMAL   – Zielwert bezieht sich auf Gesamtringe (Zehntelwertung)
+```
+
+### CompetitionStatus (ersetzt LeagueStatus)
+
+```
+DRAFT       – in Vorbereitung (noch nicht gestartet)
+ACTIVE      – laufend
+COMPLETED   – abgeschlossen
+ARCHIVED    – archiviert
+```
+
+### Bestehende Enums (unveraendert)
+
+- ScoringType: WHOLE | DECIMAL (Disziplin-Wertungsart)
+- ParticipantStatus: ACTIVE | WITHDRAWN
+- MatchupStatus: PENDING | COMPLETED | BYE | WALKOVER
+- PlayoffRound: QUARTER_FINAL | SEMI_FINAL | FINAL
+- Role: ADMIN | MANAGER | USER
+- ImportSource: MANUAL | URL | PDF
 
 ---
 
 ## Berechnungsregeln
 
-### Ringteiler
+### Faktor-Korrektur
 
 ```
-Ringteiler = MaxRinge − Seriensumme + bester Teiler der Serie
+korrigierterTeiler = Teiler * Disziplin.teilerFaktor
 ```
 
-- Teiler = Dezimalwert, direkt in Formel verwendet; bester Teiler = kleinster Wert der Serie (Schuss nächste zur Mitte)
-- MaxRinge: 100 (Ganzring) | 109 (Zehntelring)
+- LG freihand: Faktor 1.0 → Teiler unveraendert
+- LP freihand: Faktor 0.333 → Teiler / 3
+- LG Auflage: Faktor 1.8 → Teiler * 1.8
+- LP Auflage: Faktor 0.6 → Teiler * 0.6 (= 1.8 * 0.333)
+- Faktor ist frei konfigurierbar pro Disziplin
+
+### Wertungsmodus: RINGTEILER
+
+```
+Ringteiler = MaxRinge − Ringe + (Teiler * Faktor)
+```
+
+- MaxRinge: 100 (WHOLE) | 109 (DECIMAL)
 - Niedrigerer Ringteiler gewinnt
+- Bei gemischten Disziplinen gleicht der Faktor die Teiler-Unterschiede aus
 
-### Tabellenberechnung
+Beispiel (gemischt): LG-Schuetze: 96 Ringe, Teiler 3.7, Faktor 1.0 → RT = 100 - 96 + 3.7 = 7.7
+LP-Schuetze: 88 Ringe, Teiler 18.0, Faktor 0.333 → RT = 100 - 88 + 6.0 = 18.0 ... Nein:
+LP: RT = 100 - 88 + (18.0 * 0.333) = 100 - 88 + 6.0 = 18.0
 
-1. Punkte (2 Sieg, 1 Unentschieden, 0 Niederlage, Freilos = 2)
+### Wertungsmodus: RINGS / RINGS_DECIMAL
+
+```
+Wert = Gesamtringe
+```
+
+- RINGS: ganzzahlig, max 100 (bei 10 Schuss)
+- RINGS_DECIMAL: Zehntelwertung, max 109.0 (bei 10 Schuss)
+- Hoechster Wert gewinnt
+- Kein Faktor beteiligt
+
+### Wertungsmodus: TEILER
+
+```
+Wert = Teiler * Faktor
+```
+
+- Niedrigster Wert gewinnt
+- Faktor-Korrektur aktiv bei gemischten Disziplinen
+
+### Wertungsmodus: DECIMAL_REST
+
+```
+Wert = Summe der Nachkommastellen aller Ringe
+```
+
+- Beispiel: Bei Ringwerten 9.5, 10.2, 8.7 → 0.5 + 0.2 + 0.7 = 1.4
+- Hoechster Wert gewinnt
+- Kein Faktor beteiligt
+- Erfordert Einzelschusswerte (nicht nur Gesamtringe)
+
+### Wertungsmodus: TARGET_ABSOLUTE (nur EVENT)
+
+```
+Abweichung = |Messwert − Zielwert|
+```
+
+- Messwert = je nach targetValueType: Ringe, Teiler*Faktor, oder Ringe (Zehntel)
+- Geringste Abweichung gewinnt
+- Bei Teiler-basiertem Zielwert: Faktor-Korrektur auf den Messwert, Zielwert ist im korrigierten Raum
+
+### Wertungsmodus: TARGET_UNDER (nur EVENT)
+
+```
+Abweichung = Messwert − Zielwert
+```
+
+Ranking-Logik (zweistufig):
+1. Alle Teilnehmer mit Messwert ≤ Zielwert, sortiert nach geringster Abweichung (naechster am Ziel gewinnt)
+2. Alle Teilnehmer mit Messwert > Zielwert, sortiert nach geringster Abweichung
+
+Ergebnis: Wer ueber dem Ziel liegt, kommt immer nach allen die darunter oder gleich sind.
+
+### Liga-spezifisch: Punktevergabe (Gruppenphase)
+
+| Ergebnis | Sieger | Verlierer |
+|----------|--------|-----------|
+| Sieg | 2 Punkte | 0 Punkte |
+| Kampflos-Sieg | 2 Punkte | 0 Punkte |
+| Unentschieden | 1 Punkt | 1 Punkt |
+| Freilos | 2 Punkte | — |
+
+### Liga-spezifisch: Unentschieden-Aufloesung
+
+1. Bessere Serie (hoehere Ringsumme) → 2 Punkte
+2. Besserer Teiler (kleinerer Wert, ggf. mit Faktor) → 2 Punkte
+3. Kein Gewinner moeglich → beide 1 Punkt (DRAW)
+
+### Liga-spezifisch: Tabellensortierung
+
+1. Punkte (absteigend)
 2. Direkter Vergleich bei Punktgleichstand
-3. Bestes individuelles Ergebnis (niedrigster Ringteiler aller Gruppenduelle)
+3. Bestes individuelles Ergebnis (niedrigster Ringteiler aus allen Gruppenspielen)
 
-### Playoff-Qualifikation
+### Saison-spezifisch: Mehrfach-Wertung
 
-- 4–7 Teilnehmer: Top 4 → Halbfinale
-- 8+ Teilnehmer: Top 8 → Viertelfinale (1vs8, 2vs7, 3vs6, 4vs5)
+Pro Teilnehmer werden drei Bestwerte ermittelt (jeweils aus einer einzelnen Serie):
+- **Beste Ringe:** Serie mit hoechster Ringzahl
+- **Bester Teiler:** Serie mit niedrigstem korrigierten Teiler (Teiler * Faktor)
+- **Bester Ringteiler:** Serie mit niedrigstem Ringteiler (MaxRinge - Ringe + Teiler*Faktor)
+
+Wichtig: Beste Ringe und bester Teiler koennen aus **verschiedenen Serien** stammen. Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehoeren zusammen).
+
+Nur Teilnehmer mit ≥ minSeries Serien werden gewertet.
 
 ---
 
 ## Glossar
 
-| Begriff               | Erklärung                                                                                                                                   |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Seite                 | Wettkampf-Durchgang: 10 Schuss, kein Probeschuss                                                                                            |
-| Teiler                | Abstand Einschuss zur Scheibenmitte als Dezimalwert (z.B. 25,7); kleinerer Wert = näher an der Mitte; direkt in Ringteiler-Formel verwendet |
-| Ringteiler            | `MaxRinge − Seriensumme + bester Teiler der Serie`; je kleiner, desto besser                                                                |
-| Ganzring-Disziplin    | Ringe ganzzahlig 0–10; Max. 100/Seite (z.B. LP 10m freihändig)                                                                              |
-| Zehntelring-Disziplin | Ringe 0,0–10,9; Max. 109/Seite (z.B. LG Auflage)                                                                                            |
-| Liga                  | Disziplinspezifische Wettbewerbsreihe mit Spielplan, Tabelle, Playoffs                                                                      |
-| Heimrecht             | Erstgenannter Schütze organisiert Termin                                                                                                    |
-| Round Robin           | Jeder gegen jeden (Hin- und Rückrunde)                                                                                                      |
-| Freilos               | Kampfloser Sieg bei ungerader Teilnehmerzahl (3 Punkte)                                                                                     |
-| Rückzug               | Vorzeitiges Ausscheiden; alle Ergebnisse rückwirkend gestrichen                                                                             |
-| Best-of-Five          | Wer zuerst 3 Duelle gewinnt, kommt weiter; bei Unentschieden wird automatisch ein weiteres Duell angelegt (kein hartes Limit)               |
-| Finale-Modus          | 75s/Schuss, kein Probeschuss, Ansage je Schuss; Wertung immer gemäss Disziplin-Definition; Gleichstand → Sudden Death (Schuss für Schuss)   |
-| Meyton-Import         | Ergebnisübernahme aus Meyton-System via URL oder PDF                                                                                        |
-| Vorschießen           | Nicht erlaubt – beide Schützen müssen gleichzeitig am Stand antreten                                                                        |
+| Begriff | Erklaerung |
+|---------|-----------|
+| Serie | Ergebnis eines Schiessdurchgangs: N Schuss (default 10), erfasst als Gesamtringe + bester Teiler + Disziplin |
+| Teiler | Abstand Einschuss zur Scheibenmitte als Dezimalwert (z.B. 25.7); kleinerer Wert = naeher an der Mitte |
+| Teiler-Faktor | Korrekturfaktor pro Disziplin; gleicht unterschiedliche Schwierigkeitsgrade aus (z.B. LP /3, LG Auflage *1.8) |
+| Korrigierter Teiler | Teiler * Faktor; Basis fuer fairen Vergleich bei gemischten Disziplinen |
+| Ringteiler | MaxRinge − Ringe + (Teiler * Faktor); je kleiner, desto besser |
+| Wettbewerb (Competition) | Oberbegriff fuer Liga, Event und Saison |
+| Liga (LEAGUE) | Rundenbasierter Wettbewerb mit Spielplan, Tabelle, Playoffs |
+| Event (EVENT) | Einmaliges Schiessen (z.B. Kranzl); Rangliste aus einer Serie pro Teilnehmer |
+| Saison (SEASON) | Langzeit-Wettbewerb; viele Serien ueber Monate, beste Einzelserien zaehlen |
+| Wertungsmodus (ScoringMode) | Bestimmt wie Ergebnisse verglichen/gereiht werden (7 Modi) |
+| Zielwert | Vorgabewert bei TARGET-Modi; Teilnehmer schiessen moeglichst nah daran |
+| Ganzring-Disziplin | Ringe ganzzahlig 0–10; Max. 100/Serie bei 10 Schuss (z.B. LP freistehend) |
+| Zehntelring-Disziplin | Ringe 0.0–10.9; Max. 109/Serie bei 10 Schuss (z.B. LG Auflage) |
+| Heimrecht | Erstgenannter Schuetze in einer Liga-Paarung organisiert Termin |
+| Round Robin | Jeder gegen jeden (Hin- und Rueckrunde); nur Liga |
+| Freilos | Kampfloser Sieg bei ungerader Teilnehmerzahl (2 Punkte); nur Liga |
+| Rueckzug | Vorzeitiges Ausscheiden; alle Ergebnisse rueckwirkend gestrichen |
+| Best-of-Five | VF/HF-Format: wer zuerst 3 Duelle gewinnt, kommt weiter; konfigurierbar |
+| Finale-Modus | Sondermodus im Liga-Finale; Wertung konfigurierbar (Default: nur Ringe) |
+| Gastteilnehmer | Nicht-Vereinsmitglied; kann an Events teilnehmen; isGuest-Flag |
+| Mindestserien | Saison: Anzahl Serien die ein Teilnehmer mindestens geschossen haben muss |
+| Meyton-Import | Ergebnisuebername aus Meyton-System via URL oder PDF |
+| Vorschiessen | Nicht erlaubt in Liga — beide Schuetzen muessen gleichzeitig am Stand antreten |
