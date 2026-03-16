@@ -17,10 +17,10 @@ import {
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
 import { setDisciplineArchived, deleteDiscipline } from "@/lib/disciplines/actions"
-import type { Discipline } from "@/generated/prisma/client"
+import type { SerializableDiscipline } from "@/lib/disciplines/types"
 
 interface Props {
-  discipline: Discipline
+  discipline: SerializableDiscipline
 }
 
 export function DisciplineActions({ discipline }: Props) {

@@ -4,28 +4,28 @@
 
 ## Rollen & Berechtigungen
 
-| Rolle | Berechtigungen |
-|-------|---------------|
-| Administrator (ADMIN) | Vollzugriff: Nutzerverwaltung, Wettbewerbe, Teilnehmer, Force-Delete |
-| Manager (MANAGER) | Wettbewerbe erstellen/verwalten, Ergebnisse erfassen, Teilnehmer/Disziplinen verwalten — **kein** Zugriff auf Nutzerverwaltung, kein Force-Delete |
-| Benutzer (USER) | Ergebnisse und Tabellen einsehen (read-only) |
-| Gastteilnehmer | Nimmt an einzelnen Events teil; kein Login erforderlich |
+| Rolle                 | Berechtigungen                                                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Administrator (ADMIN) | Vollzugriff: Nutzerverwaltung, Wettbewerbe, Teilnehmer, Force-Delete                                                                              |
+| Manager (MANAGER)     | Wettbewerbe erstellen/verwalten, Ergebnisse erfassen, Teilnehmer/Disziplinen verwalten — **kein** Zugriff auf Nutzerverwaltung, kein Force-Delete |
+| Benutzer (USER)       | Ergebnisse und Tabellen einsehen (read-only)                                                                                                      |
+| Gastteilnehmer        | Nimmt an einzelnen Events teil; kein Login erforderlich                                                                                           |
 
 ### Berechtigungsmatrix
 
-| Aktion | ADMIN | MANAGER | USER |
-|--------|-------|---------|------|
-| Wettbewerbe erstellen/bearbeiten | Ja | Ja | Nein |
-| Ergebnisse erfassen/korrigieren | Ja | Ja | Nein |
-| Teilnehmer verwalten | Ja | Ja | Nein |
-| Disziplinen verwalten | Ja | Ja | Nein |
-| Playoffs starten/verwalten | Ja | Ja | Nein |
-| Wettbewerb archivieren/abschliessen | Ja | Ja | Nein |
-| Audit-Log einsehen | Ja | Ja | Nein |
-| **Nutzerverwaltung** (/admin/*) | Ja | **Nein** | Nein |
-| **Force-Delete** | Ja | **Nein** | Nein |
-| **Rollen zuweisen** | Ja | **Nein** | Nein |
-| Ergebnisse/Tabellen ansehen | Ja | Ja | Ja |
+| Aktion                              | ADMIN | MANAGER  | USER |
+| ----------------------------------- | ----- | -------- | ---- |
+| Wettbewerbe erstellen/bearbeiten    | Ja    | Ja       | Nein |
+| Ergebnisse erfassen/korrigieren     | Ja    | Ja       | Nein |
+| Teilnehmer verwalten                | Ja    | Ja       | Nein |
+| Disziplinen verwalten               | Ja    | Ja       | Nein |
+| Playoffs starten/verwalten          | Ja    | Ja       | Nein |
+| Wettbewerb archivieren/abschliessen | Ja    | Ja       | Nein |
+| Audit-Log einsehen                  | Ja    | Ja       | Nein |
+| **Nutzerverwaltung** (/admin/\*)    | Ja    | **Nein** | Nein |
+| **Force-Delete**                    | Ja    | **Nein** | Nein |
+| **Rollen zuweisen**                 | Ja    | **Nein** | Nein |
+| Ergebnisse/Tabellen ansehen         | Ja    | Ja       | Ja   |
 
 ---
 
@@ -39,12 +39,12 @@
   - In Disziplin-Listen: Badge mit "Faktor X.XXX" (z.B. "Faktor 0.333")
 - Vorinstallierte Systemdisziplinen (automatisch angelegt beim ersten Start):
 
-| Kuerzel | Name | Wertungsart | teilerFaktor |
-|---------|------|-------------|-------------|
-| LP | Luftpistole | Ganzringe | 0.333 (/3) |
-| LG | Luftgewehr | Ganzringe | 1.0 |
-| LPA | Luftpistole Auflage | Zehntelringe | 0.6 (/3 * 1.8) |
-| LGA | Luftgewehr Auflage | Zehntelringe | 1.8 |
+| Kuerzel | Name                | Wertungsart  | teilerFaktor    |
+| ------- | ------------------- | ------------ | --------------- |
+| LP      | Luftpistole         | Ganzringe    | 0.333 (/3)      |
+| LG      | Luftgewehr          | Ganzringe    | 1.0             |
+| LPA     | Luftpistole Auflage | Zehntelringe | 0.6 (/3 \* 1.8) |
+| LGA     | Luftgewehr Auflage  | Zehntelringe | 1.8             |
 
 - Admin: Disziplinen anlegen, bearbeiten, Faktor konfigurieren
 - Loeschen nur ohne Wettbewerbsergebnisse; sonst **archivieren**
@@ -58,15 +58,16 @@
 
 Ringwerk kennt drei Wettbewerbstypen. Alle teilen dieselbe Scoring-Engine und den Teilnehmerpool.
 
-| Typ | Ablauf | Ergebnis |
-|-----|--------|---------|
-| **Liga** (LEAGUE) | Spielplan → Gruppenphase → Tabelle → Playoffs | Meister + Platzierungen |
-| **Event** (EVENT) | Anmeldung → Schiessen → Rangliste | Rangliste (ggf. mit Zielwert) |
-| **Saison** (SEASON) | Serien ueber Monate → Auswertung | Mehrfach-Ranking (Ringe, Teiler, Ringteiler) |
+| Typ                 | Ablauf                                        | Ergebnis                                     |
+| ------------------- | --------------------------------------------- | -------------------------------------------- |
+| **Liga** (LEAGUE)   | Spielplan → Gruppenphase → Tabelle → Playoffs | Meister + Platzierungen                      |
+| **Event** (EVENT)   | Anmeldung → Schiessen → Rangliste             | Rangliste (ggf. mit Zielwert)                |
+| **Saison** (SEASON) | Serien ueber Monate → Auswertung              | Mehrfach-Ranking (Ringe, Teiler, Ringteiler) |
 
 ### Gemeinsame Konfiguration
 
 Jeder Wettbewerb hat:
+
 - **Name** und **Status** (Entwurf → Aktiv → Abgeschlossen → Archiviert)
 - **Wertungsmodus** (ScoringMode) — bestimmt wie Ergebnisse verglichen werden
 - **Schusszahl pro Serie** (default 10, konfigurierbar, z.B. 5 fuer Kurz-Kranzl)
@@ -74,15 +75,15 @@ Jeder Wettbewerb hat:
 
 ### Wertungsmodi (Scoring-Engine)
 
-| Modus | Formel | Gewinner | Faktor |
-|-------|--------|----------|--------|
-| RINGTEILER | MaxRinge - Ringe + (Teiler * Faktor) | Niedrigster | Ja |
-| RINGS | Gesamtringe (ganzzahlig) | Hoechster | Nein |
-| RINGS_DECIMAL | Gesamtringe (Zehntelwertung) | Hoechster | Nein |
-| TEILER | Teiler * Faktor | Niedrigster | Ja |
-| DECIMAL_REST | Nachkommastelle der Ringe summiert | Hoechster | Nein |
-| TARGET_ABSOLUTE | Abweichung vom Zielwert | Geringste | Wenn Teiler-basiert |
-| TARGET_UNDER | ≤ Zielwert bevorzugt, dann Abweichung | Geringste | Wenn Teiler-basiert |
+| Modus           | Formel                                | Gewinner    | Faktor              |
+| --------------- | ------------------------------------- | ----------- | ------------------- |
+| RINGTEILER      | MaxRinge - Ringe + (Teiler \* Faktor) | Niedrigster | Ja                  |
+| RINGS           | Gesamtringe (ganzzahlig)              | Hoechster   | Nein                |
+| RINGS_DECIMAL   | Gesamtringe (Zehntelwertung)          | Hoechster   | Nein                |
+| TEILER          | Teiler \* Faktor                      | Niedrigster | Ja                  |
+| DECIMAL_REST    | Nachkommastelle der Ringe summiert    | Hoechster   | Nein                |
+| TARGET_ABSOLUTE | Abweichung vom Zielwert               | Geringste   | Wenn Teiler-basiert |
+| TARGET_UNDER    | ≤ Zielwert bevorzugt, dann Abweichung | Geringste   | Wenn Teiler-basiert |
 
 Formeln und Details: siehe `data-model.md` → Berechnungsregeln.
 
@@ -95,16 +96,16 @@ Formeln und Details: siehe `data-model.md` → Berechnungsregeln.
 Eine Liga ist an **eine Disziplin gebunden** (oder gemischt mit Faktor-Korrektur).
 Konfigurierbare Regelsets pro Liga:
 
-| Parameter | Default | Beschreibung |
-|-----------|---------|-------------|
-| scoringMode | RINGTEILER | Wertung Gruppenphase |
-| shotsPerSeries | 10 | Schuss pro Seite |
-| playoffBestOf | 3 | Siege zum Weiterkommen (3 = Best-of-Five) |
-| playoffQualThreshold | 8 | Ab dieser TN-Zahl → VF statt HF |
-| playoffQualTopN1 | 4 | Qualifikanten fuer HF |
-| playoffQualTopN2 | 8 | Qualifikanten fuer VF |
-| finaleScoringMode | RINGS | Wertung Finale |
-| finaleHasSuddenDeath | true | Sudden Death bei Gleichstand |
+| Parameter            | Default    | Beschreibung                              |
+| -------------------- | ---------- | ----------------------------------------- |
+| scoringMode          | RINGTEILER | Wertung Gruppenphase                      |
+| shotsPerSeries       | 10         | Schuss pro Seite                          |
+| playoffBestOf        | 3          | Siege zum Weiterkommen (3 = Best-of-Five) |
+| playoffQualThreshold | 8          | Ab dieser TN-Zahl → VF statt HF           |
+| playoffQualTopN1     | 4          | Qualifikanten fuer HF                     |
+| playoffQualTopN2     | 8          | Qualifikanten fuer VF                     |
+| finaleScoringMode    | RINGS      | Wertung Finale                            |
+| finaleHasSuddenDeath | true       | Sudden Death bei Gleichstand              |
 
 Regelset ist **nach Spielplan-Generierung gesperrt** — Aenderungen nur vor dem ersten Spieltag.
 
@@ -132,9 +133,9 @@ Regelset ist **nach Spielplan-Generierung gesperrt** — Aenderungen nur vor dem
 
 ### Validierungsregeln
 
-| Wertungsart | Gueltige Einzelwerte |
-|-------------|---------------------|
-| Ganzringe | 0–10, ganzzahlig |
+| Wertungsart  | Gueltige Einzelwerte                                      |
+| ------------ | --------------------------------------------------------- |
+| Ganzringe    | 0–10, ganzzahlig                                          |
 | Zehntelringe | 0.0 oder 1.0–10.9 (eine Dezimalstelle; 0.1–0.9 ungueltig) |
 
 - Seriensumme ≤ Schussanzahl × Max.Ringe/Schuss
@@ -143,6 +144,7 @@ Regelset ist **nach Spielplan-Generierung gesperrt** — Aenderungen nur vor dem
 ### Tabelle & Rangliste
 
 Sortierung absteigend:
+
 1. Punkte
 2. Direkter Vergleich (bei Punktgleichstand)
 3. Bestes individuelles Ergebnis (niedrigster Ringteiler)
@@ -154,10 +156,10 @@ Zurueckgezogene Teilnehmer → Tabellenende mit Vermerk
 
 #### Qualifikation
 
-| Teilnehmer | Qualifikanten | Einstieg |
-|------------|--------------|---------|
-| 4–7 | Top N1 (default 4) | Halbfinale |
-| 8+ | Top N2 (default 8) | Viertelfinale |
+| Teilnehmer | Qualifikanten      | Einstieg      |
+| ---------- | ------------------ | ------------- |
+| 4–7        | Top N1 (default 4) | Halbfinale    |
+| 8+         | Top N2 (default 8) | Viertelfinale |
 
 Seeding: 1 vs. letzter, 2 vs. vorletzter, usw.
 
@@ -182,14 +184,14 @@ Seeding: 1 vs. letzter, 2 vs. vorletzter, usw.
 
 #### Finale (Sondermodus)
 
-| Regel | Beschreibung |
-|-------|-------------|
-| Wertung | gemaess `finaleScoringMode` (default: nur Ringe, hoechste gewinnt) |
-| Gleichstand | wenn `finaleHasSuddenDeath`: weiteres Duell bis Entscheid |
-| Einrichtungszeit | 3 Minuten |
-| Probeschuss | Keiner |
-| Ansage | Jeder Schuss einzeln |
-| Zeit pro Schuss | 75 Sekunden |
+| Regel            | Beschreibung                                                       |
+| ---------------- | ------------------------------------------------------------------ |
+| Wertung          | gemaess `finaleScoringMode` (default: nur Ringe, hoechste gewinnt) |
+| Gleichstand      | wenn `finaleHasSuddenDeath`: weiteres Duell bis Entscheid          |
+| Einrichtungszeit | 3 Minuten                                                          |
+| Probeschuss      | Keiner                                                             |
+| Ansage           | Jeder Schuss einzeln                                               |
+| Zeit pro Schuss  | 75 Sekunden                                                        |
 
 App-Umfang: **nur Ergebniserfassung** (keine Zeitnahme oder Ansage-Unterstuetzung)
 
@@ -221,16 +223,16 @@ Alle Teilnehmer schiessen, eine Rangliste wird erstellt.
 
 ### Konfiguration
 
-| Parameter | Beschreibung |
-|-----------|-------------|
-| scoringMode | Wertungsmodus (alle 7 Modi moeglich) |
-| shotsPerSeries | Schusszahl pro Serie (default 10, z.B. 5 fuer Kurz-Kranzl) |
-| disciplineId | null = gemischt (Faktor aktiv), oder fixe Disziplin |
-| eventDate | Veranstaltungsdatum |
-| allowGuests | Gastteilnehmer zugelassen |
-| teamSize | null = Einzel; 2+ = Teamgroesse |
-| targetValue | Zielwert fuer TARGET-Modi (z.B. 512 oder 76.0) |
-| targetValueType | TEILER, RINGS oder RINGS_DECIMAL |
+| Parameter       | Beschreibung                                               |
+| --------------- | ---------------------------------------------------------- |
+| scoringMode     | Wertungsmodus (alle 7 Modi moeglich)                       |
+| shotsPerSeries  | Schusszahl pro Serie (default 10, z.B. 5 fuer Kurz-Kranzl) |
+| disciplineId    | null = gemischt (Faktor aktiv), oder fixe Disziplin        |
+| eventDate       | Veranstaltungsdatum                                        |
+| allowGuests     | Gastteilnehmer zugelassen                                  |
+| teamSize        | null = Einzel; 2+ = Teamgroesse                            |
+| targetValue     | Zielwert fuer TARGET-Modi (z.B. 512 oder 76.0)             |
+| targetValueType | TEILER, RINGS oder RINGS_DECIMAL                           |
 
 ### Teilnehmer & Gaeste
 
@@ -256,6 +258,7 @@ Nur bei Events. Zwei Varianten:
 **TARGET_ABSOLUTE:** Moeglichst nah an den Zielwert — ob drueber oder drunter ist egal.
 
 **TARGET_UNDER:** ≤ Zielwert wird bevorzugt.
+
 - Erst alle die den Zielwert nicht ueberschritten haben (sortiert nach Naehe)
 - Dann alle die drueber sind (sortiert nach Naehe)
 
@@ -281,14 +284,14 @@ Serien werden "gekauft" — jede geschossene Serie zaehlt als gekauft.
 
 ### Konfiguration
 
-| Parameter | Beschreibung |
-|-----------|-------------|
-| scoringMode | Primaerer Wertungsmodus (fuer die Hauptsortierung) |
-| shotsPerSeries | Schusszahl pro Serie |
-| disciplineId | Immer null (gemischt) — Teilnehmer koennen Disziplin pro Serie wechseln |
-| minSeries | Mindestanzahl Serien fuer Wertung (default 20) |
-| seasonStart | Saisonbeginn |
-| seasonEnd | Saisonende |
+| Parameter      | Beschreibung                                                            |
+| -------------- | ----------------------------------------------------------------------- |
+| scoringMode    | Primaerer Wertungsmodus (fuer die Hauptsortierung)                      |
+| shotsPerSeries | Schusszahl pro Serie                                                    |
+| disciplineId   | Immer null (gemischt) — Teilnehmer koennen Disziplin pro Serie wechseln |
+| minSeries      | Mindestanzahl Serien fuer Wertung (default 20)                          |
+| seasonStart    | Saisonbeginn                                                            |
+| seasonEnd      | Saisonende                                                              |
 
 ### Serien-Erfassung
 
@@ -301,11 +304,11 @@ Serien werden "gekauft" — jede geschossene Serie zaehlt als gekauft.
 
 Die Saison-Tabelle zeigt **drei Bestwerte** pro Teilnehmer (jeweils aus einer einzelnen Serie):
 
-| Kategorie | Berechnung | Gewinner |
-|-----------|-----------|----------|
-| Beste Ringe | Hoechste Ringzahl einer einzelnen Serie | Hoechster |
-| Bester Teiler | Niedrigster korrigierter Teiler (Teiler * Faktor) | Niedrigster |
-| Bester Ringteiler | Niedrigster Ringteiler einer einzelnen Serie | Niedrigster |
+| Kategorie         | Berechnung                                         | Gewinner    |
+| ----------------- | -------------------------------------------------- | ----------- |
+| Beste Ringe       | Hoechste Ringzahl einer einzelnen Serie            | Hoechster   |
+| Bester Teiler     | Niedrigster korrigierter Teiler (Teiler \* Faktor) | Niedrigster |
+| Bester Ringteiler | Niedrigster Ringteiler einer einzelnen Serie       | Niedrigster |
 
 **Wichtig:** Beste Ringe und bester Teiler koennen aus **verschiedenen Serien** stammen.
 Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehoeren zusammen).
@@ -376,16 +379,16 @@ Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehoeren zusam
 - `competitionId` statt `leagueId` als Referenz
 - Ereignistypen (erweiterbar fuer Event/Saison):
 
-| Ereignis | Ausloeser |
-|----------|----------|
-| PARTICIPANT_WITHDRAWN | Rueckzug eines Teilnehmers |
-| WITHDRAWAL_REVOKED | Rueckzug rueckgaengig |
-| RESULT_ENTERED | Ergebnis eingetragen |
-| RESULT_CORRECTED | Ergebnis korrigiert |
-| PLAYOFFS_STARTED | Playoff-Phase gestartet |
-| PLAYOFF_RESULT_ENTERED | Playoff-Duell-Ergebnis eingetragen |
-| PLAYOFF_RESULT_CORRECTED | Playoff-Duell korrigiert |
-| PLAYOFF_DUEL_DELETED | Playoff-Duell geloescht |
+| Ereignis                 | Ausloeser                          |
+| ------------------------ | ---------------------------------- |
+| PARTICIPANT_WITHDRAWN    | Rueckzug eines Teilnehmers         |
+| WITHDRAWAL_REVOKED       | Rueckzug rueckgaengig              |
+| RESULT_ENTERED           | Ergebnis eingetragen               |
+| RESULT_CORRECTED         | Ergebnis korrigiert                |
+| PLAYOFFS_STARTED         | Playoff-Phase gestartet            |
+| PLAYOFF_RESULT_ENTERED   | Playoff-Duell-Ergebnis eingetragen |
+| PLAYOFF_RESULT_CORRECTED | Playoff-Duell korrigiert           |
+| PLAYOFF_DUEL_DELETED     | Playoff-Duell geloescht            |
 
 - Details-JSON als Snapshot (denormalisiert, kein Verweis)
 - Liga-Protokoll: per Wettbewerb; Globales Protokoll: alle Wettbewerbe

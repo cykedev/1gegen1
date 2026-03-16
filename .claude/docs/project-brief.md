@@ -34,11 +34,11 @@ Schema -> Migration -> Types -> Queries -> Actions -> Calculate -> Components ->
 
 Ringwerk unterstuetzt drei Wettbewerbstypen, die alle auf einer gemeinsamen Scoring-Engine aufbauen:
 
-| Typ | Beschreibung | Beispiel |
-|-----|-------------|---------|
-| **Liga** (LEAGUE) | Rundenbasiert mit Spielplan, Tabelle, Playoffs | 1-gegen-1 Liga |
-| **Event** (EVENT) | Einmaliges Schiessen an einem Abend, Rangliste | Kranzlschiessen, Pokalschiessen |
-| **Saison** (SEASON) | Langzeit-Wettbewerb ueber Monate, beste Einzelserien | Jahrespreisschiessen |
+| Typ                 | Beschreibung                                         | Beispiel                        |
+| ------------------- | ---------------------------------------------------- | ------------------------------- |
+| **Liga** (LEAGUE)   | Rundenbasiert mit Spielplan, Tabelle, Playoffs       | 1-gegen-1 Liga                  |
+| **Event** (EVENT)   | Einmaliges Schiessen an einem Abend, Rangliste       | Kranzlschiessen, Pokalschiessen |
+| **Saison** (SEASON) | Langzeit-Wettbewerb ueber Monate, beste Einzelserien | Jahrespreisschiessen            |
 
 ### Gemeinsamer Kern
 
@@ -51,9 +51,9 @@ Ringwerk unterstuetzt drei Wettbewerbstypen, die alle auf einer gemeinsamen Scor
 
 ## Annahmen & Designentscheidungen
 
-1. **Ein Faktor pro Disziplin** — kein getrennter Waffen-/Auflagefaktor; Admin konfiguriert den kombinierten Wert (z.B. LP Auflage = 0.6 statt separat /3 und *1.8)
+1. **Ein Faktor pro Disziplin** — kein getrennter Waffen-/Auflagefaktor; Admin konfiguriert den kombinierten Wert (z.B. LP Auflage = 0.6 statt separat /3 und \*1.8)
 2. **Ringe brauchen keine Korrektur** — MaxRinge identisch ueber alle Disziplinen (100 Ganzringe, 109 Zehntelringe)
-3. **Teiler-Faktor ist kein DSB-Standard** — vereinsintern definiert, frei konfigurierbar; uebliche Werte: LP /3.0–3.2, LG Auflage *1.5–1.8
+3. **Teiler-Faktor ist kein DSB-Standard** — vereinsintern definiert, frei konfigurierbar; uebliche Werte: LP /3.0–3.2, LG Auflage \*1.5–1.8
 4. **Kein Migrationsdruck** — App ist pre-launch, aggressive Refactorings erlaubt
 5. **Liga bleibt der komplexeste Modus** — Event und Saison sind strukturell einfacher
 6. **Teams als spaetere Erweiterung** — kein Mannschaftswettbewerb in der Erstversion
@@ -66,13 +66,13 @@ Ringwerk unterstuetzt drei Wettbewerbstypen, die alle auf einer gemeinsamen Scor
 
 ## Risiken
 
-| Risiko | Auswirkung | Mitigation |
-|--------|-----------|-----------|
-| Competition-Abstraktion wird zu generisch | Viele nullable Felder, unklare Validierung | Typ-spezifische Zod-Schemas (Discriminated Unions), klare Defaults |
-| MatchResult → Series Refactoring bricht Liga-Logik | Tests schlagen fehl | Aggressive Testabdeckung vor Refactoring; pre-launch = kein Datenverlust |
-| Scoring-Engine-Komplexitaet durch 7 Modi | Schwer testbar, Edge Cases | Jeder Modus als eigene Pure Function, parametrisierte Tests |
-| Rename League → Competition beruehrt fast jede Datei | Hohes Fehlerrisiko | Atomarer Rename in einer dedizierten Phase, danach sofort /check |
-| Zielwert + Faktor-Korrektur Interaktion | Unklare Semantik | Faktor auf Rohwert anwenden, Zielwert in korrigiertem Raum — dokumentiert und getestet |
+| Risiko                                               | Auswirkung                                 | Mitigation                                                                             |
+| ---------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Competition-Abstraktion wird zu generisch            | Viele nullable Felder, unklare Validierung | Typ-spezifische Zod-Schemas (Discriminated Unions), klare Defaults                     |
+| MatchResult → Series Refactoring bricht Liga-Logik   | Tests schlagen fehl                        | Aggressive Testabdeckung vor Refactoring; pre-launch = kein Datenverlust               |
+| Scoring-Engine-Komplexitaet durch 7 Modi             | Schwer testbar, Edge Cases                 | Jeder Modus als eigene Pure Function, parametrisierte Tests                            |
+| Rename League → Competition beruehrt fast jede Datei | Hohes Fehlerrisiko                         | Atomarer Rename in einer dedizierten Phase, danach sofort /check                       |
+| Zielwert + Faktor-Korrektur Interaktion              | Unklare Semantik                           | Faktor auf Rohwert anwenden, Zielwert in korrigiertem Raum — dokumentiert und getestet |
 
 ---
 

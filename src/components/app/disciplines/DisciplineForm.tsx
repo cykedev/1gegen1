@@ -13,11 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import type { Discipline } from "@/generated/prisma/client"
+import type { SerializableDiscipline } from "@/lib/disciplines/types"
 import type { ActionResult } from "@/lib/types"
 
 interface Props {
-  discipline?: Discipline
+  discipline?: SerializableDiscipline
   action: (prevState: ActionResult | null, formData: FormData) => Promise<ActionResult>
 }
 

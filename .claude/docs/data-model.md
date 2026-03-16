@@ -28,35 +28,35 @@
 
 #### Liga-spezifisch (LEAGUE)
 
-| Feld | Typ | Default | Beschreibung |
-|------|-----|---------|-------------|
-| roundDeadlineHin | DateTime? | null | Stichtag Hinrunde |
-| roundDeadlineRueck | DateTime? | null | Stichtag Rueckrunde |
-| groupScoringMode | ScoringMode? | RINGTEILER | Wertungsmodus Gruppenphase (= scoringMode) |
-| playoffBestOf | Int? | 3 | Siege zum Weiterkommen VF/HF (3 = Best-of-Five) |
-| playoffQualThreshold | Int? | 8 | Ab dieser TN-Zahl → Viertelfinale |
-| playoffQualTopN1 | Int? | 4 | Qualifikanten fuer HF bei Direkteinstieg |
-| playoffQualTopN2 | Int? | 8 | Qualifikanten fuer VF |
-| finaleScoringMode | ScoringMode? | RINGS | Wertungsmodus Finale |
-| finaleHasSuddenDeath | Boolean? | true | Sudden Death bei Finale-Gleichstand |
+| Feld                 | Typ          | Default    | Beschreibung                                    |
+| -------------------- | ------------ | ---------- | ----------------------------------------------- |
+| roundDeadlineHin     | DateTime?    | null       | Stichtag Hinrunde                               |
+| roundDeadlineRueck   | DateTime?    | null       | Stichtag Rueckrunde                             |
+| groupScoringMode     | ScoringMode? | RINGTEILER | Wertungsmodus Gruppenphase (= scoringMode)      |
+| playoffBestOf        | Int?         | 3          | Siege zum Weiterkommen VF/HF (3 = Best-of-Five) |
+| playoffQualThreshold | Int?         | 8          | Ab dieser TN-Zahl → Viertelfinale               |
+| playoffQualTopN1     | Int?         | 4          | Qualifikanten fuer HF bei Direkteinstieg        |
+| playoffQualTopN2     | Int?         | 8          | Qualifikanten fuer VF                           |
+| finaleScoringMode    | ScoringMode? | RINGS      | Wertungsmodus Finale                            |
+| finaleHasSuddenDeath | Boolean?     | true       | Sudden Death bei Finale-Gleichstand             |
 
 #### Event-spezifisch (EVENT)
 
-| Feld | Typ | Default | Beschreibung |
-|------|-----|---------|-------------|
-| eventDate | DateTime? | null | Veranstaltungsdatum |
-| allowGuests | Boolean? | false | Gastteilnehmer erlaubt |
-| teamSize | Int? | null | null = Einzel; 2+ = Teamgroesse |
-| targetValue | Decimal? | null | Zielwert (nur TARGET_ABSOLUTE / TARGET_UNDER) |
-| targetValueType | TargetValueType? | null | TEILER, RINGS oder RINGS_DECIMAL |
+| Feld            | Typ              | Default | Beschreibung                                  |
+| --------------- | ---------------- | ------- | --------------------------------------------- |
+| eventDate       | DateTime?        | null    | Veranstaltungsdatum                           |
+| allowGuests     | Boolean?         | false   | Gastteilnehmer erlaubt                        |
+| teamSize        | Int?             | null    | null = Einzel; 2+ = Teamgroesse               |
+| targetValue     | Decimal?         | null    | Zielwert (nur TARGET_ABSOLUTE / TARGET_UNDER) |
+| targetValueType | TargetValueType? | null    | TEILER, RINGS oder RINGS_DECIMAL              |
 
 #### Saison-spezifisch (SEASON)
 
-| Feld | Typ | Default | Beschreibung |
-|------|-----|---------|-------------|
-| minSeries | Int? | 20 | Mindestanzahl Serien fuer Wertung |
-| seasonStart | DateTime? | null | Saisonbeginn |
-| seasonEnd | DateTime? | null | Saisonende |
+| Feld        | Typ       | Default | Beschreibung                      |
+| ----------- | --------- | ------- | --------------------------------- |
+| minSeries   | Int?      | 20      | Mindestanzahl Serien fuer Wertung |
+| seasonStart | DateTime? | null    | Saisonbeginn                      |
+| seasonEnd   | DateTime? | null    | Saisonende                        |
 
 ### Wettbewerbs-Teilnehmer (CompetitionParticipant) — ersetzt LeagueParticipant
 
@@ -163,8 +163,8 @@ korrigierterTeiler = Teiler * Disziplin.teilerFaktor
 
 - LG freihand: Faktor 1.0 → Teiler unveraendert
 - LP freihand: Faktor 0.333 → Teiler / 3
-- LG Auflage: Faktor 1.8 → Teiler * 1.8
-- LP Auflage: Faktor 0.6 → Teiler * 0.6 (= 1.8 * 0.333)
+- LG Auflage: Faktor 1.8 → Teiler \* 1.8
+- LP Auflage: Faktor 0.6 → Teiler _ 0.6 (= 1.8 _ 0.333)
 - Faktor ist frei konfigurierbar pro Disziplin
 
 ### Wertungsmodus: RINGTEILER
@@ -179,7 +179,7 @@ Ringteiler = MaxRinge − Ringe + (Teiler * Faktor)
 
 Beispiel (gemischt): LG-Schuetze: 96 Ringe, Teiler 3.7, Faktor 1.0 → RT = 100 - 96 + 3.7 = 7.7
 LP-Schuetze: 88 Ringe, Teiler 18.0, Faktor 0.333 → RT = 100 - 88 + 6.0 = 18.0 ... Nein:
-LP: RT = 100 - 88 + (18.0 * 0.333) = 100 - 88 + 6.0 = 18.0
+LP: RT = 100 - 88 + (18.0 \* 0.333) = 100 - 88 + 6.0 = 18.0
 
 ### Wertungsmodus: RINGS / RINGS_DECIMAL
 
@@ -218,7 +218,7 @@ Wert = Summe der Nachkommastellen aller Ringe
 Abweichung = |Messwert − Zielwert|
 ```
 
-- Messwert = je nach targetValueType: Ringe, Teiler*Faktor, oder Ringe (Zehntel)
+- Messwert = je nach targetValueType: Ringe, Teiler\*Faktor, oder Ringe (Zehntel)
 - Geringste Abweichung gewinnt
 - Bei Teiler-basiertem Zielwert: Faktor-Korrektur auf den Messwert, Zielwert ist im korrigierten Raum
 
@@ -229,6 +229,7 @@ Abweichung = Messwert − Zielwert
 ```
 
 Ranking-Logik (zweistufig):
+
 1. Alle Teilnehmer mit Messwert ≤ Zielwert, sortiert nach geringster Abweichung (naechster am Ziel gewinnt)
 2. Alle Teilnehmer mit Messwert > Zielwert, sortiert nach geringster Abweichung
 
@@ -236,12 +237,12 @@ Ergebnis: Wer ueber dem Ziel liegt, kommt immer nach allen die darunter oder gle
 
 ### Liga-spezifisch: Punktevergabe (Gruppenphase)
 
-| Ergebnis | Sieger | Verlierer |
-|----------|--------|-----------|
-| Sieg | 2 Punkte | 0 Punkte |
-| Kampflos-Sieg | 2 Punkte | 0 Punkte |
-| Unentschieden | 1 Punkt | 1 Punkt |
-| Freilos | 2 Punkte | — |
+| Ergebnis      | Sieger   | Verlierer |
+| ------------- | -------- | --------- |
+| Sieg          | 2 Punkte | 0 Punkte  |
+| Kampflos-Sieg | 2 Punkte | 0 Punkte  |
+| Unentschieden | 1 Punkt  | 1 Punkt   |
+| Freilos       | 2 Punkte | —         |
 
 ### Liga-spezifisch: Unentschieden-Aufloesung
 
@@ -258,9 +259,10 @@ Ergebnis: Wer ueber dem Ziel liegt, kommt immer nach allen die darunter oder gle
 ### Saison-spezifisch: Mehrfach-Wertung
 
 Pro Teilnehmer werden drei Bestwerte ermittelt (jeweils aus einer einzelnen Serie):
+
 - **Beste Ringe:** Serie mit hoechster Ringzahl
-- **Bester Teiler:** Serie mit niedrigstem korrigierten Teiler (Teiler * Faktor)
-- **Bester Ringteiler:** Serie mit niedrigstem Ringteiler (MaxRinge - Ringe + Teiler*Faktor)
+- **Bester Teiler:** Serie mit niedrigstem korrigierten Teiler (Teiler \* Faktor)
+- **Bester Ringteiler:** Serie mit niedrigstem Ringteiler (MaxRinge - Ringe + Teiler\*Faktor)
 
 Wichtig: Beste Ringe und bester Teiler koennen aus **verschiedenen Serien** stammen. Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehoeren zusammen).
 
@@ -270,28 +272,28 @@ Nur Teilnehmer mit ≥ minSeries Serien werden gewertet.
 
 ## Glossar
 
-| Begriff | Erklaerung |
-|---------|-----------|
-| Serie | Ergebnis eines Schiessdurchgangs: N Schuss (default 10), erfasst als Gesamtringe + bester Teiler + Disziplin |
-| Teiler | Abstand Einschuss zur Scheibenmitte als Dezimalwert (z.B. 25.7); kleinerer Wert = naeher an der Mitte |
-| Teiler-Faktor | Korrekturfaktor pro Disziplin; gleicht unterschiedliche Schwierigkeitsgrade aus (z.B. LP /3, LG Auflage *1.8) |
-| Korrigierter Teiler | Teiler * Faktor; Basis fuer fairen Vergleich bei gemischten Disziplinen |
-| Ringteiler | MaxRinge − Ringe + (Teiler * Faktor); je kleiner, desto besser |
-| Wettbewerb (Competition) | Oberbegriff fuer Liga, Event und Saison |
-| Liga (LEAGUE) | Rundenbasierter Wettbewerb mit Spielplan, Tabelle, Playoffs |
-| Event (EVENT) | Einmaliges Schiessen (z.B. Kranzl); Rangliste aus einer Serie pro Teilnehmer |
-| Saison (SEASON) | Langzeit-Wettbewerb; viele Serien ueber Monate, beste Einzelserien zaehlen |
-| Wertungsmodus (ScoringMode) | Bestimmt wie Ergebnisse verglichen/gereiht werden (7 Modi) |
-| Zielwert | Vorgabewert bei TARGET-Modi; Teilnehmer schiessen moeglichst nah daran |
-| Ganzring-Disziplin | Ringe ganzzahlig 0–10; Max. 100/Serie bei 10 Schuss (z.B. LP freistehend) |
-| Zehntelring-Disziplin | Ringe 0.0–10.9; Max. 109/Serie bei 10 Schuss (z.B. LG Auflage) |
-| Heimrecht | Erstgenannter Schuetze in einer Liga-Paarung organisiert Termin |
-| Round Robin | Jeder gegen jeden (Hin- und Rueckrunde); nur Liga |
-| Freilos | Kampfloser Sieg bei ungerader Teilnehmerzahl (2 Punkte); nur Liga |
-| Rueckzug | Vorzeitiges Ausscheiden; alle Ergebnisse rueckwirkend gestrichen |
-| Best-of-Five | VF/HF-Format: wer zuerst 3 Duelle gewinnt, kommt weiter; konfigurierbar |
-| Finale-Modus | Sondermodus im Liga-Finale; Wertung konfigurierbar (Default: nur Ringe) |
-| Gastteilnehmer | Nicht-Vereinsmitglied; kann an Events teilnehmen; isGuest-Flag |
-| Mindestserien | Saison: Anzahl Serien die ein Teilnehmer mindestens geschossen haben muss |
-| Meyton-Import | Ergebnisuebername aus Meyton-System via URL oder PDF |
-| Vorschiessen | Nicht erlaubt in Liga — beide Schuetzen muessen gleichzeitig am Stand antreten |
+| Begriff                     | Erklaerung                                                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Serie                       | Ergebnis eines Schiessdurchgangs: N Schuss (default 10), erfasst als Gesamtringe + bester Teiler + Disziplin   |
+| Teiler                      | Abstand Einschuss zur Scheibenmitte als Dezimalwert (z.B. 25.7); kleinerer Wert = naeher an der Mitte          |
+| Teiler-Faktor               | Korrekturfaktor pro Disziplin; gleicht unterschiedliche Schwierigkeitsgrade aus (z.B. LP /3, LG Auflage \*1.8) |
+| Korrigierter Teiler         | Teiler \* Faktor; Basis fuer fairen Vergleich bei gemischten Disziplinen                                       |
+| Ringteiler                  | MaxRinge − Ringe + (Teiler \* Faktor); je kleiner, desto besser                                                |
+| Wettbewerb (Competition)    | Oberbegriff fuer Liga, Event und Saison                                                                        |
+| Liga (LEAGUE)               | Rundenbasierter Wettbewerb mit Spielplan, Tabelle, Playoffs                                                    |
+| Event (EVENT)               | Einmaliges Schiessen (z.B. Kranzl); Rangliste aus einer Serie pro Teilnehmer                                   |
+| Saison (SEASON)             | Langzeit-Wettbewerb; viele Serien ueber Monate, beste Einzelserien zaehlen                                     |
+| Wertungsmodus (ScoringMode) | Bestimmt wie Ergebnisse verglichen/gereiht werden (7 Modi)                                                     |
+| Zielwert                    | Vorgabewert bei TARGET-Modi; Teilnehmer schiessen moeglichst nah daran                                         |
+| Ganzring-Disziplin          | Ringe ganzzahlig 0–10; Max. 100/Serie bei 10 Schuss (z.B. LP freistehend)                                      |
+| Zehntelring-Disziplin       | Ringe 0.0–10.9; Max. 109/Serie bei 10 Schuss (z.B. LG Auflage)                                                 |
+| Heimrecht                   | Erstgenannter Schuetze in einer Liga-Paarung organisiert Termin                                                |
+| Round Robin                 | Jeder gegen jeden (Hin- und Rueckrunde); nur Liga                                                              |
+| Freilos                     | Kampfloser Sieg bei ungerader Teilnehmerzahl (2 Punkte); nur Liga                                              |
+| Rueckzug                    | Vorzeitiges Ausscheiden; alle Ergebnisse rueckwirkend gestrichen                                               |
+| Best-of-Five                | VF/HF-Format: wer zuerst 3 Duelle gewinnt, kommt weiter; konfigurierbar                                        |
+| Finale-Modus                | Sondermodus im Liga-Finale; Wertung konfigurierbar (Default: nur Ringe)                                        |
+| Gastteilnehmer              | Nicht-Vereinsmitglied; kann an Events teilnehmen; isGuest-Flag                                                 |
+| Mindestserien               | Saison: Anzahl Serien die ein Teilnehmer mindestens geschossen haben muss                                      |
+| Meyton-Import               | Ergebnisuebername aus Meyton-System via URL oder PDF                                                           |
+| Vorschiessen                | Nicht erlaubt in Liga — beide Schuetzen muessen gleichzeitig am Stand antreten                                 |
