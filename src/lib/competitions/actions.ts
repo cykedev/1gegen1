@@ -72,6 +72,14 @@ const BaseSchema = z.object({
     .nullable()
     .optional()
     .transform((v) => v || null),
+  // Saison
+  minSeries: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v && v.trim() !== "" ? parseInt(v, 10) : null)),
+  seasonStart: z.string().nullable().optional(),
+  seasonEnd: z.string().nullable().optional(),
 })
 
 const CreateSchema = BaseSchema.extend({
@@ -103,6 +111,9 @@ export async function createCompetition(
     teamSize: formData.get("teamSize"),
     targetValue: formData.get("targetValue"),
     targetValueType: formData.get("targetValueType"),
+    minSeries: formData.get("minSeries"),
+    seasonStart: formData.get("seasonStart"),
+    seasonEnd: formData.get("seasonEnd"),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
@@ -130,6 +141,9 @@ export async function createCompetition(
       teamSize: type === "EVENT" ? (parsed.data.teamSize ?? null) : null,
       targetValue: type === "EVENT" ? (parsed.data.targetValue ?? null) : null,
       targetValueType: type === "EVENT" ? (parsed.data.targetValueType ?? null) : null,
+      minSeries: type === "SEASON" ? (parsed.data.minSeries ?? null) : null,
+      seasonStart: type === "SEASON" ? parseDate(parsed.data.seasonStart) : null,
+      seasonEnd: type === "SEASON" ? parseDate(parsed.data.seasonEnd) : null,
       createdByUserId: session.user.id,
     },
     select: { id: true },
@@ -170,6 +184,9 @@ export async function updateCompetition(
     teamSize: formData.get("teamSize"),
     targetValue: formData.get("targetValue"),
     targetValueType: formData.get("targetValueType"),
+    minSeries: formData.get("minSeries"),
+    seasonStart: formData.get("seasonStart"),
+    seasonEnd: formData.get("seasonEnd"),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
@@ -188,6 +205,9 @@ export async function updateCompetition(
       teamSize: type === "EVENT" ? (parsed.data.teamSize ?? null) : undefined,
       targetValue: type === "EVENT" ? (parsed.data.targetValue ?? null) : undefined,
       targetValueType: type === "EVENT" ? (parsed.data.targetValueType ?? null) : undefined,
+      minSeries: type === "SEASON" ? (parsed.data.minSeries ?? null) : undefined,
+      seasonStart: type === "SEASON" ? parseDate(parsed.data.seasonStart) : undefined,
+      seasonEnd: type === "SEASON" ? parseDate(parsed.data.seasonEnd) : undefined,
     },
   })
 

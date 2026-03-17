@@ -1,6 +1,6 @@
 import { db } from "@/lib/db"
 import type { CompetitionDetail, CompetitionListItem } from "@/lib/competitions/types"
-import type { EventSeriesItem } from "@/lib/series/types"
+import type { EventSeriesItem, SeasonParticipantEntry, SeasonSeriesItem } from "@/lib/series/types"
 
 const disciplineSelect = {
   id: true,
@@ -139,4 +139,81 @@ export async function getEventWithSeries(id: string): Promise<{
   }))
 
   return { competition, series }
+}
+
+/** Saison-Wettbewerb mit allen Teilnehmern und deren Serien — für Serien-Verwaltung und Rangliste. */
+export async function getSeasonWithSeries(id: string): Promise<{
+  competition: CompetitionDetail
+  participants: SeasonParticipantEntry[]
+} | null> {
+  const competition = await getCompetitionById(id)
+  if (!competition || competition.type !== "SEASON") return null
+
+  const participants = await db.competitionParticipant.findMany({
+    where: { competitionId: id },
+    select: {
+      participantId: true,
+      status: true,
+      disciplineId: true,
+      discipline: { select: { id: true, name: true } },
+      participant: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+    orderBy: [{ participant: { lastName: "asc" } }, { participant: { firstName: "asc" } }],
+  })
+
+  const seriesRows = await db.series.findMany({
+    where: { competitionId: id },
+    select: {
+      id: true,
+      participantId: true,
+      disciplineId: true,
+      discipline: { select: { name: true, teilerFaktor: true } },
+      rings: true,
+      teiler: true,
+      ringteiler: true,
+      shotCount: true,
+      sessionDate: true,
+    },
+    orderBy: { sessionDate: "asc" },
+  })
+
+  // Serien nach Teilnehmer gruppieren
+  const seriesByParticipant = new Map<string, SeasonSeriesItem[]>()
+  for (const s of seriesRows) {
+    const item: SeasonSeriesItem = {
+      id: s.id,
+      participantId: s.participantId,
+      disciplineId: s.disciplineId,
+      discipline: {
+        name: s.discipline.name,
+        teilerFaktor: s.discipline.teilerFaktor.toNumber(),
+      },
+      rings: s.rings.toNumber(),
+      teiler: s.teiler.toNumber(),
+      ringteiler: s.ringteiler.toNumber(),
+      shotCount: s.shotCount,
+      sessionDate: s.sessionDate,
+    }
+    const existing = seriesByParticipant.get(s.participantId) ?? []
+    existing.push(item)
+    seriesByParticipant.set(s.participantId, existing)
+  }
+
+  const result: SeasonParticipantEntry[] = participants.map((cp) => ({
+    participantId: cp.participantId,
+    firstName: cp.participant.firstName,
+    lastName: cp.participant.lastName,
+    status: cp.status,
+    disciplineId: cp.disciplineId,
+    discipline: cp.discipline,
+    series: seriesByParticipant.get(cp.participantId) ?? [],
+  }))
+
+  return { competition, participants: result }
 }

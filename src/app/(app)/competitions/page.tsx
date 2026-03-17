@@ -51,6 +51,28 @@ function CompetitionCardLinks({ c, isAdmin }: { c: CompetitionListItem; isAdmin:
       </>
     )
   }
+  if (c.type === "SEASON") {
+    return (
+      <>
+        {isAdmin && (
+          <Link href={`/competitions/${c.id}/participants`} className={NAV_LINK}>
+            <Users className="h-3.5 w-3.5" />
+            {c._count.participants} Teilnehmer
+          </Link>
+        )}
+        {isAdmin && (
+          <Link href={`/competitions/${c.id}/series`} className={NAV_LINK}>
+            <ListOrdered className="h-3.5 w-3.5" />
+            Serien
+          </Link>
+        )}
+        <Link href={`/competitions/${c.id}/standings`} className={NAV_LINK}>
+          <BarChart2 className="h-3.5 w-3.5" />
+          Rangliste
+        </Link>
+      </>
+    )
+  }
   // LEAGUE (default)
   return (
     <>
@@ -82,6 +104,16 @@ function CompetitionCardMeta({ c, tz }: { c: CompetitionListItem; tz: string }) 
       </p>
     )
   }
+  if (c.type === "SEASON") {
+    if (!c.seasonStart) return null
+    return (
+      <p className="text-xs text-muted-foreground/70 flex items-center gap-1">
+        <CalendarCheck className="h-3 w-3" />
+        {formatDate(c.seasonStart, tz)}
+        {c.seasonEnd && <> – {formatDate(c.seasonEnd, tz)}</>}
+      </p>
+    )
+  }
   return (
     <p className="text-xs text-muted-foreground/70">
       Hinrunde bis {formatDate(c.hinrundeDeadline, tz)} · Rückrunde bis{" "}
@@ -95,6 +127,13 @@ function CompetitionTypeBadge({ type }: { type: string }) {
     return (
       <Badge variant="outline" className="text-xs">
         Event
+      </Badge>
+    )
+  }
+  if (type === "SEASON") {
+    return (
+      <Badge variant="outline" className="text-xs">
+        Saison
       </Badge>
     )
   }

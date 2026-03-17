@@ -39,6 +39,13 @@ const EVENT_SCORING_MODE_LABELS = Object.fromEntries(
   Object.entries(SCORING_MODE_LABELS).filter(([k]) => k !== "DECIMAL_REST")
 )
 
+// Saison: nur Wertungen die auf Serien-Basis sinnvoll sind
+const SEASON_SCORING_MODE_LABELS = Object.fromEntries(
+  Object.entries(SCORING_MODE_LABELS).filter(([k]) =>
+    ["RINGS", "RINGS_DECIMAL", "TEILER", "RINGTEILER"].includes(k)
+  )
+)
+
 const TARGET_VALUE_TYPE_LABELS: Record<string, string> = {
   RINGS: "Ringe (ganzzahlig)",
   RINGS_DECIMAL: "Ringe (Zehntelwertung)",
@@ -90,6 +97,7 @@ export function CompetitionForm({ competition, disciplines, action }: Props) {
             <SelectContent>
               <SelectItem value="LEAGUE">Liga</SelectItem>
               <SelectItem value="EVENT">Event (Kranzlschiessen)</SelectItem>
+              <SelectItem value="SEASON">Saison (Jahrespreisschiessen)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -102,7 +110,13 @@ export function CompetitionForm({ competition, disciplines, action }: Props) {
           id="name"
           name="name"
           defaultValue={competition?.name ?? ""}
-          placeholder={type === "EVENT" ? "z.B. Kranzlschiessen 2026" : "z.B. Winterliga 2026"}
+          placeholder={
+            type === "EVENT"
+              ? "z.B. Kranzlschiessen 2026"
+              : type === "SEASON"
+                ? "z.B. Jahrespreisschiessen 2026"
+                : "z.B. Winterliga 2026"
+          }
           disabled={isPending}
         />
         {fieldErrors?.name && <p className="text-sm text-destructive">{fieldErrors.name[0]}</p>}
@@ -122,7 +136,11 @@ export function CompetitionForm({ competition, disciplines, action }: Props) {
           </SelectTrigger>
           <SelectContent>
             {Object.entries(
-              type === "LEAGUE" ? SCORING_MODE_LABELS : EVENT_SCORING_MODE_LABELS
+              type === "LEAGUE"
+                ? SCORING_MODE_LABELS
+                : type === "SEASON"
+                  ? SEASON_SCORING_MODE_LABELS
+                  : EVENT_SCORING_MODE_LABELS
             ).map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}
@@ -175,6 +193,48 @@ export function CompetitionForm({ competition, disciplines, action }: Props) {
           <p className="text-sm text-destructive">{fieldErrors.disciplineId[0]}</p>
         )}
       </div>
+
+      {/* ── Saison-Felder ────────────────────────────────────────── */}
+      {(type === "SEASON" || (isEdit && competition?.type === "SEASON")) && (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="minSeries">Mindestserien (optional)</Label>
+            <Input
+              id="minSeries"
+              name="minSeries"
+              type="number"
+              min={1}
+              max={999}
+              defaultValue={competition?.minSeries ?? ""}
+              placeholder="z.B. 20"
+              disabled={isPending}
+            />
+            <p className="text-xs text-muted-foreground">
+              Teilnehmer mit weniger Serien werden in der Rangliste ausgegraut.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="seasonStart">Saisonbeginn (optional)</Label>
+            <Input
+              id="seasonStart"
+              name="seasonStart"
+              type="date"
+              defaultValue={toDateInputValue(competition?.seasonStart)}
+              disabled={isPending}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="seasonEnd">Saisonende (optional)</Label>
+            <Input
+              id="seasonEnd"
+              name="seasonEnd"
+              type="date"
+              defaultValue={toDateInputValue(competition?.seasonEnd)}
+              disabled={isPending}
+            />
+          </div>
+        </>
+      )}
 
       {/* ── Liga-Felder ─────────────────────────────────────────── */}
       {(type === "LEAGUE" || (isEdit && competition?.type === "LEAGUE")) && (

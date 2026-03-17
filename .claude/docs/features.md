@@ -64,6 +64,11 @@ Ringwerk kennt drei Wettbewerbstypen. Alle teilen dieselbe Scoring-Engine und de
 | **Event** (EVENT)   | Anmeldung → Schiessen → Rangliste             | Rangliste (ggf. mit Zielwert)                |
 | **Saison** (SEASON) | Serien über Monate → Auswertung               | Mehrfach-Ranking (Ringe, Teiler, Ringteiler) |
 
+**Dashboard-Integration:** Das Dashboard unterteilt aktive Wettbewerbe nach Typ:
+- **Liga:** Interaktive Tabelle + K.O.-Bracket
+- **Event & Saison:** Separate Ranglisten mit Links zu den Detailseiten
+- **Saison:** Zeigt zusätzlich Saisonzeitraum und Serien-Fortschritt
+
 ### Gemeinsame Konfiguration
 
 Jeder Wettbewerb hat:
@@ -72,6 +77,8 @@ Jeder Wettbewerb hat:
 - **Wertungsmodus** (ScoringMode) — bestimmt wie Ergebnisse verglichen werden
 - **Schusszahl pro Serie** (default 10, konfigurierbar, z.B. 5 für Kurz-Kranzl)
 - **Disziplin** — fix (alle schießen dieselbe) oder **gemischt** (jeder wählt seine Disziplin, Faktor-Korrektur aktiv)
+
+**SEASON-spezifisch:** Nur RINGS, RINGS_DECIMAL, TEILER und RINGTEILER als Wertungsmodi verfügbar (TARGET-Modi sind auf Event beschränkt).
 
 ### Wertungsmodi (Scoring-Engine)
 
@@ -277,7 +284,7 @@ Bei Teiler-basiertem Zielwert: Faktor-Korrektur wird auf den gemessenen Teiler a
 
 ---
 
-## Saison-Modus (SEASON)
+## Saison-Modus (SEASON) ✓ IMPLEMENTIERT (Phase 5)
 
 ### Konzept
 
@@ -289,21 +296,25 @@ Serien werden "gekauft" — jede geschossene Serie zählt als gekauft.
 
 | Parameter      | Beschreibung                                                           |
 | -------------- | ---------------------------------------------------------------------- |
-| scoringMode    | Primärer Wertungsmodus (für die Hauptsortierung)                       |
+| scoringMode    | Primärer Wertungsmodus (für die Hauptsortierung). Nur RINGS, RINGS_DECIMAL, TEILER, RINGTEILER |
 | shotsPerSeries | Schusszahl pro Serie                                                   |
 | disciplineId   | Immer null (gemischt) — Teilnehmer können Disziplin pro Serie wechseln |
 | minSeries      | Mindestanzahl Serien für Wertung (default 20)                          |
 | seasonStart    | Saisonbeginn                                                           |
 | seasonEnd      | Saisonende                                                             |
 
-### Serien-Erfassung
+### Serien-Erfassung ✓
 
 - Über mehrere Schießabende hinweg
 - Pro Eintrag: Gesamtringe, Teiler, Disziplin, Datum
 - Teilnehmer kann Disziplin pro Serie frei wählen
 - Keine Begrenzung der Serienanzahl nach oben
+- Admin erfasst Serien via `SeasonSeriesDialog`:
+  - **sessionDate** defaultet auf heute
+  - **Disziplin-Vorauswahl** (defaultDisciplineId prop) wird unterstützt
+  - Dialog kann jederzeit neu geöffnet werden (fix Reopening-Bug via useEffect Pattern)
 
-### Mehrfach-Wertung
+### Mehrfach-Wertung ✓
 
 Die Saison-Tabelle zeigt **drei Bestwerte** pro Teilnehmer (jeweils aus einer einzelnen Serie):
 
@@ -316,7 +327,14 @@ Die Saison-Tabelle zeigt **drei Bestwerte** pro Teilnehmer (jeweils aus einer ei
 **Wichtig:** Beste Ringe und bester Teiler können aus **verschiedenen Serien** stammen.
 Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehören zusammen).
 
-### Mindestserien-Prüfung
+### Saison-Rangliste (Seiten-UI) ✓
+
+- **Sortierbare Spalten:** Header-Click zum Sortieren nach Platzierung, Name, Ringe, Teiler, Ringteiler
+- **Default-Sortierung:** abhängig vom `scoringMode` (z.B. Ringe für RINGS-Modus)
+- **Gemischte Wettbewerbe:** Spalte "Best. Teiler korr." zeigt die mit Faktor korrigierten Teiler-Werte
+- **Serien-Anzeige:** Pro Teilnehmer können Serien expandiert/collapsiert werden (Chevron-Icon)
+
+### Mindestserien-Prüfung ✓
 
 - Nur Teilnehmer mit ≥ minSeries geschossenen Serien erscheinen in der Wertung
 - Teilnehmer mit weniger Serien werden angezeigt, aber ausgegraut / nicht gewertet
@@ -349,18 +367,26 @@ Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehören zusam
 
 ## Visualisierung & Auswertung
 
-### Dashboard-Aufteilung (Phase 4)
+### Dashboard-Aufteilung (Phase 4 + Phase 5)
 
 Das Haupt-Dashboard unterteilt aktive Wettbewerbe nach Typ:
 
 - **Liga (LEAGUE):** Interaktive Tabelle, K.O.-Bracket, Punkteverlauf (Liniendiagramm); Spielplan-Navigation
-- **Event & Saison (non-LEAGUE):** EventRankingTable (mit Disziplin + korrigiertem Teiler bei gemischt) + Link zu Rangliste
+- **Event (EVENT):** EventRankingTable mit Disziplin + korrigiertem Teiler (bei gemischt), Link zu Event-Rangliste
+- **Saison (SEASON):** SeasonStandingsTable mit Bestwerten (Ringe, Teiler, Ringteiler), Saisonzeitraum und Serien-Fortschritt, Link zu /standings
+
+### Wettbewerbs-Listenansicht
+
+Die Seite `/competitions` zeigt Wettbewerbe in Karten mit:
+- **Wettbewerbstyp-Badge:** "Liga", "Event", "Saison"
+- **Saison-Typen:** zusätzlich Saisonzeitraum (seasonStart – seasonEnd)
+- **Navigation:** Links zu /series (Serien-Erfassung) und /standings (Saison-Rangliste) für Saison-Wettbewerbe
 
 ### Auswertungen pro Typ
 
 - **Liga:** Spielplan (Hin-/Rückrunde), Tabelle, Playoffs
 - **Event:** Rangliste mit Disziplin, Ergebniswert und Faktor-Korrektur (bei gemischt: "Teiler korr." angezeigt)
-- **Saison:** Mehrfach-Tabelle (Ringe, Teiler, Ringteiler), Serien-Verlauf, Fortschrittsanzeige
+- **Saison:** Mehrfach-Tabelle (Ringe, Teiler, Ringteiler) mit sortierbaren Spalten und Serien-Expansion, Serien-Erfassungsdialog mit Disziplin-Vorauswahl, Fortschrittsanzeige
 - **Alle:** Paarungsplan/Serienliste, Profil-Seite je Teilnehmer
 - Export: Spielplan + Tabelle als druckoptimiertes PDF (nur Liga)
 
@@ -404,6 +430,8 @@ Das Haupt-Dashboard unterteilt aktive Wettbewerbe nach Typ:
 | EVENT_SERIES_ENTERED     | Serie bei Event eingetragen        |
 | EVENT_SERIES_CORRECTED   | Serie bei Event korrigiert         |
 | EVENT_SERIES_DELETED     | Serie bei Event gelöscht           |
+| SEASON_SERIES_ENTERED    | Serie bei Saison eingetragen       |
+| SEASON_SERIES_DELETED    | Serie bei Saison gelöscht          |
 
 - Details-JSON als Snapshot (denormalisiert, kein Verweis)
 - Wettbewerb-Protokoll: pro Wettbewerb; Globales Protokoll: alle Wettbewerbe

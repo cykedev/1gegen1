@@ -231,54 +231,53 @@ Iterativer Umbau von "1-gegen-1 Liga-App" zu "Ringwerk" — universelle Wettbewe
 
 ---
 
-### Phase 5: Saison-Modus (Jahrespreisschiessen)
+### Phase 5: Saison-Modus (Jahrespreisschiessen) ✓ ABGESCHLOSSEN [2026-03-17]
 
 **Ziel:** Langzeit-Wettbewerb mit Mehrfach-Wertung. Serien ueber Monate erfassen, Best-of-Logik, Mindestserien.
 **Abhaengigkeiten:** Phase 4 abgeschlossen (Event-Modus, Series-Infrastruktur).
 **Risiko:** GERING — neuer Code. Komplexitaet liegt in der Best-of-Auswertung (gut testbar).
+**Status:** ABGESCHLOSSEN [2026-03-17]
 
 #### Types
 
-- [ ] `src/lib/competitions/types.ts` — Saison-spezifische Typen: `SeasonDetail`, `SeasonStandings`
+- [x] `src/lib/series/types.ts` — `SeasonSeriesItem`, `SeasonParticipantEntry`
+
+#### Queries
+
+- [x] `src/lib/competitions/queries.ts` — `getSeasonWithSeries`
 
 #### Actions
 
-- [ ] `src/lib/series/actions.ts` — `saveSeasonSeries` (mehrere Serien pro Teilnehmer, mit Datum + Disziplin)
-- [ ] `src/lib/competitions/actions.ts` — `createSeason`, `updateSeason`
+- [x] `src/lib/series/actions.ts` — `saveSeasonSeries`, `deleteSeasonSeries`
+- [x] `src/lib/competitions/actions.ts` — Season-Felder in `createCompetition`/`updateCompetition` (minSeries, seasonStart, seasonEnd)
+- [x] `src/lib/auditLog/types.ts` — `SEASON_SERIES_ENTERED`, `SEASON_SERIES_DELETED`
 
 #### Calculate
 
-- [ ] `src/lib/scoring/calculateSeasonStandings.ts`:
-  - Beste Ringe pro Teilnehmer (hoechste Ringzahl einer einzelnen Serie)
-  - Bester Teiler pro Teilnehmer (niedrigster korrigierter Teiler einer einzelnen Serie)
-  - Bester Ringteiler pro Teilnehmer (niedrigster Ringteiler einer einzelnen Serie — Ringe + Teiler aus derselben Serie)
-  - Mindestserien-Filter (≥ minSeries)
-- [ ] `src/lib/scoring/calculateSeasonStandings.test.ts` — Tests:
-  - Beste Ringe und bester Teiler aus verschiedenen Serien
-  - Ringteiler aus derselben Serie
-  - Faktor-Korrektur bei verschiedenen Disziplinen
-  - Teilnehmer unter Mindestserien ausgegraut
+- [x] `src/lib/scoring/calculateSeasonStandings.ts` — 3 unabhaengige Wertungen, Mindestserien-Filter, Rang-Zuweisung
+- [x] `src/lib/scoring/calculateSeasonStandings.test.ts` — 13 Tests
 
 #### Components
 
-- [ ] Saison-Erstellungs-Formular (type=SEASON Felder)
-- [ ] Saison-Serien-Erfassung (Liste mit Datum, Disziplinwahl, Hinzufuegen-Flow)
-- [ ] Saison-Tabelle (3 Spalten: beste Ringe, bester Teiler, bester Ringteiler)
-- [ ] Fortschrittsanzeige pro Teilnehmer ("12 / 20 Serien")
+- [x] `CompetitionForm.tsx` — SEASON-Option + Saison-Felder (minSeries, seasonStart, seasonEnd)
+- [x] `SeasonSeriesDialog.tsx` — Serie hinzufuegen (Datum + Ringe + Teiler + optionale Disziplin)
+- [x] `SeasonStandingsTable.tsx` — 3 Spalten (beste Ringe, bester Teiler, bester Ringteiler) + Fortschritt
+- [x] `DeleteSeasonSeriesButton.tsx` — AlertDialog fuer Serienloeschung
 
 #### Pages
 
-- [ ] `/competitions/[id]/series` — Serien-Verwaltung (erweitert fuer Saison: Mehrfach-Eintraege, Datum)
-- [ ] `/competitions/[id]/standings` — Saison-Tabelle mit Mehrfach-Ranking
+- [x] `/competitions/[id]/page.tsx` — SEASON-Redirect zu `/standings`
+- [x] `/competitions/[id]/series` — Season-Branch: Teilnehmer-Liste mit Serien + Add/Delete
+- [x] `/competitions/[id]/standings` — Saison-Rangliste (3-Spalten-Tabelle)
 
 #### Tests & Qualitaet
 
-- [ ] Saison-Standings-Tests (Prioritaet: Best-of-Logik + Faktor)
-- [ ] `/check` — alle Gates gruen
+- [x] 179 Tests gruen
+- [x] `/check` — alle Gates gruen
 
 #### Finalisierung
 
-- [ ] `docs/` aktualisieren
+- [x] `docs/` aktualisiert
 
 ---
 

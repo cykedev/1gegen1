@@ -28,3 +28,28 @@ export type SaveEventSeriesInput = {
   teiler: number
   shotCount: number
 }
+
+export type SeasonSeriesItem = {
+  id: string
+  participantId: string
+  disciplineId: string
+  discipline: {
+    name: string
+    teilerFaktor: number
+  }
+  rings: number
+  teiler: number
+  ringteiler: number
+  shotCount: number
+  sessionDate: Date
+}
+
+export type SeasonParticipantEntry = {
+  participantId: string
+  firstName: string
+  lastName: string
+  status: string
+  disciplineId: string | null
+  discipline: { id: string; name: string } | null
+  series: SeasonSeriesItem[]
+}

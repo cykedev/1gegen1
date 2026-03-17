@@ -19,10 +19,10 @@ Verbindlich gleichrangig mit `.claude/docs/technical.md`. Neue Dateien immer gem
 /                                   ← Dashboard (LEAGUE: Tabelle + Playoffs; non-LEAGUE: EventRankingTable + Rangliste-Link)
 /competitions                       ← alle Wettbewerbe
 /competitions/new                   ← Wettbewerb anlegen (Admin)
-/competitions/[id]                  ← Type-basierter Redirect (Liga → /schedule, Event → /ranking)
+/competitions/[id]                  ← Type-basierter Redirect (Liga → /schedule, Event → /ranking, Saison → /standings)
 /competitions/[id]/participants     ← Teilnehmer einschreiben/verwalten (Admin)
-/competitions/[id]/schedule         ← Spielplan + Tabelle (Liga/Saison); non-LEAGUE → Redirect zu /ranking
-/competitions/[id]/standings        ← Ligatabelle/Saison-Tabelle (Tabellenberechnung)
+/competitions/[id]/schedule         ← Spielplan + Tabelle (Liga); non-LEAGUE → Redirect zu /ranking
+/competitions/[id]/standings        ← Ligatabelle (Liga) / Saison-Rangliste (Saison)
 /competitions/[id]/ranking          ← Event-Rangliste
 /competitions/[id]/series           ← Event/Saison Serien-Erfassung (Admin)
 /competitions/[id]/playoffs         ← Playoff-Bracket (Liga, Admin)
@@ -131,6 +131,11 @@ src/
         EventSeriesDialog.tsx ← Serie hinzufügen/bearbeiten
         EventRankingTable.tsx ← Rangliste mit Disziplin + Faktor; `isMixed` prop zeigt "Teiler korr." bei gemischten Wettbewerben
         DeleteEventSeriesButton.tsx ← Serie löschen
+      series/                 ← Saison-spezifische Komponenten
+        SeasonSeriesDialog.tsx ← Serie hinzufügen/bearbeiten (sessionDate defaults zu heute, Disziplin-Vorauswahl, Dialog-Reopening-Fix)
+        SeasonParticipantItem.tsx ← Collapsible Serien-Liste je Teilnehmer mit Chevron-Icon
+        SeasonStandingsTable.tsx ← Saison-Rangliste mit sortierbaren Spalten (Ringe, Teiler, Ringteiler), `scoringMode`-basierte Default-Sortierung, `isMixed` zeigt "Best. Teiler korr."
+        DeleteSeasonSeriesButton.tsx ← Serie löschen
       participants/
       disciplines/
       account/
@@ -148,9 +153,9 @@ src/
     utils.ts                  ← cn() und andere UI-Helfer
     types.ts                  ← Shared Types (ActionResult etc.)
     competitions/
-      actions.ts              ← Server Actions: Wettbewerb anlegen/bearbeiten/abschliessen/force-delete, Event-Felder (type, scoringMode, allowGuests, disciplineId)
-      queries.ts              ← Datenbankabfragen: Wettbewerb laden, getEventWithSeries
-      types.ts                ← CompetitionDetail, CompetitionListItem, Event-Typen
+      actions.ts              ← Server Actions: Wettbewerb anlegen/bearbeiten/abschliessen/force-delete, Event/Saison-Felder (type, scoringMode, allowGuests, disciplineId, seasonStart/seasonEnd)
+      queries.ts              ← Datenbankabfragen: Wettbewerb laden, getEventWithSeries, getSeasonWithSeries
+      types.ts                ← CompetitionDetail, CompetitionListItem, Event/Saison-Typen
     competitionParticipants/
       actions.ts              ← Einschreiben, Rückzug, Rückzug rückgängig, isGuest + disciplineId Support
       queries.ts
@@ -176,10 +181,12 @@ src/
       rankParticipants.ts     ← Ranglistenberechnung pro Wertungsmodus
       rankParticipants.test.ts
       rankEventParticipants.ts ← Event-Ranking mit Faktor-Korrektur
-      types.ts                ← ScoringMode, ScoreInput, RankableEntry, RankedEntry, EventRankedEntry
+      calculateSeasonStandings.ts ← Saison-Ranking (Bestwerte: beste Ringe, bester Teiler, bester Ringteiler; mit Mindestserien-Prüfung)
+      types.ts                ← ScoringMode, ScoreInput, RankableEntry, RankedEntry, EventRankedEntry, SeasonRankedEntry
     series/
-      actions.ts              ← saveEventSeries, deleteEventSeries (neue Serie-Verwaltung)
-      types.ts                ← EventSeriesItem, SaveEventSeriesInput
+      actions.ts              ← saveEventSeries, deleteEventSeries, saveSeasonSeries, deleteSeasonSeries (mit Disziplin-Unterstützung)
+      queries.ts              ← getSeasonSeries (lädt Serien einer Saison)
+      types.ts                ← EventSeriesItem, SaveEventSeriesInput, SeasonSeriesItem, SaveSeasonSeriesInput
     playoffs/
       actions.ts              ← Playoffs starten, Duell-Ergebnis speichern, Duel anlegen
       queries.ts              ← Bracket-Daten laden

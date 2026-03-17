@@ -14,5 +14,9 @@ export default async function CompetitionPage({ params }: Props) {
     redirect(`/competitions/${id}/ranking`)
   }
 
+  if (competition.type === "SEASON") {
+    redirect(`/competitions/${id}/standings`)
+  }
+
   redirect(`/competitions/${id}/schedule`)
 }

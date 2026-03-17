@@ -2,13 +2,19 @@ import Link from "next/link"
 import { redirect } from "next/navigation"
 import { Trophy } from "lucide-react"
 import { getAuthSession } from "@/lib/auth-helpers"
-import { getCompetitionsForManagement, getEventWithSeries } from "@/lib/competitions/queries"
+import {
+  getCompetitionsForManagement,
+  getEventWithSeries,
+  getSeasonWithSeries,
+} from "@/lib/competitions/queries"
 import { getStandingsForCompetition } from "@/lib/standings/queries"
 import { getPlayoffBracket } from "@/lib/playoffs/queries"
 import { rankEventParticipants } from "@/lib/scoring/rankEventParticipants"
+import { calculateSeasonStandings } from "@/lib/scoring/calculateSeasonStandings"
 import { StandingsTable } from "@/components/app/standings/StandingsTable"
 import { PlayoffBracket } from "@/components/app/playoffs/PlayoffBracket"
 import { EventRankingTable } from "@/components/app/series/EventRankingTable"
+import { SeasonStandingsTable } from "@/components/app/series/SeasonStandingsTable"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
@@ -21,9 +27,10 @@ export default async function DashboardPage() {
   const competitions = await getCompetitionsForManagement()
   const active = competitions.filter((c) => c.status === "ACTIVE")
   const activeLeagues = active.filter((c) => c.type === "LEAGUE")
-  const activeNonLeagues = active.filter((c) => c.type !== "LEAGUE")
+  const activeEvents = active.filter((c) => c.type === "EVENT")
+  const activeSeasons = active.filter((c) => c.type === "SEASON")
 
-  const [leagueData, nonLeagueData] = await Promise.all([
+  const [leagueData, eventData, seasonData] = await Promise.all([
     Promise.all(
       activeLeagues.map(async (c) => ({
         competition: c,
@@ -32,7 +39,7 @@ export default async function DashboardPage() {
       }))
     ),
     Promise.all(
-      activeNonLeagues.map(async (c) => {
+      activeEvents.map(async (c) => {
         const data = await getEventWithSeries(c.id)
         const ranked = data
           ? rankEventParticipants(data.series, {
@@ -43,6 +50,22 @@ export default async function DashboardPage() {
             })
           : []
         return { competition: c, ranked }
+      })
+    ),
+    Promise.all(
+      activeSeasons.map(async (c) => {
+        const data = await getSeasonWithSeries(c.id)
+        const standings = data
+          ? calculateSeasonStandings(
+              data.participants.map((p) => ({
+                participantId: p.participantId,
+                participantName: `${p.lastName}, ${p.firstName}`,
+                series: p.series,
+              })),
+              data.competition.minSeries
+            )
+          : []
+        return { competition: c, standings, minSeries: data?.competition.minSeries ?? null }
       })
     ),
   ])
@@ -101,8 +124,8 @@ export default async function DashboardPage() {
             )
           })}
 
-          {/* Events / Saisons: Rangliste */}
-          {nonLeagueData.map(({ competition: c, ranked }) => (
+          {/* Events: Rangliste */}
+          {eventData.map(({ competition: c, ranked }) => (
             <div key={c.id} className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-lg font-semibold">{c.name}</h2>
@@ -119,6 +142,31 @@ export default async function DashboardPage() {
                 <div className="flex justify-end">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/competitions/${c.id}/ranking`}>Rangliste →</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Saisons: Rangliste */}
+          {seasonData.map(({ competition: c, standings, minSeries }) => (
+            <div key={c.id} className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg font-semibold">{c.name}</h2>
+                <Badge variant="secondary" className="text-xs">
+                  {c.discipline?.name ?? "Gemischt"}
+                </Badge>
+              </div>
+              <div className="space-y-2">
+                <SeasonStandingsTable
+                  entries={standings}
+                  minSeries={minSeries}
+                  scoringMode={c.scoringMode}
+                  isMixed={!c.discipline}
+                />
+                <div className="flex justify-end">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/competitions/${c.id}/standings`}>Rangliste →</Link>
                   </Button>
                 </div>
               </div>

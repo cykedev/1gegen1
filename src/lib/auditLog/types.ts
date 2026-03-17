@@ -10,6 +10,8 @@ export type AuditEventType =
   | "EVENT_SERIES_ENTERED"
   | "EVENT_SERIES_CORRECTED"
   | "EVENT_SERIES_DELETED"
+  | "SEASON_SERIES_ENTERED"
+  | "SEASON_SERIES_DELETED"
 
 export const AUDIT_EVENT_LABELS: Record<string, string> = {
   PARTICIPANT_WITHDRAWN: "Teilnehmer zurückgezogen",
@@ -23,6 +25,8 @@ export const AUDIT_EVENT_LABELS: Record<string, string> = {
   EVENT_SERIES_ENTERED: "Serie erfasst",
   EVENT_SERIES_CORRECTED: "Serie korrigiert",
   EVENT_SERIES_DELETED: "Serie gelöscht",
+  SEASON_SERIES_ENTERED: "Saison-Serie erfasst",
+  SEASON_SERIES_DELETED: "Saison-Serie gelöscht",
 }
 
 export type AuditEventCategory = "participant" | "result" | "playoff" | "destructive"
@@ -39,6 +43,8 @@ export const AUDIT_EVENT_CATEGORY: Record<string, AuditEventCategory> = {
   EVENT_SERIES_ENTERED: "result",
   EVENT_SERIES_CORRECTED: "result",
   EVENT_SERIES_DELETED: "destructive",
+  SEASON_SERIES_ENTERED: "result",
+  SEASON_SERIES_DELETED: "destructive",
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -122,6 +128,21 @@ export function formatAuditDetails(eventType: string, details: unknown): DetailR
       rows.push({ label: "Ringe", value: rings(d.rings) })
       rows.push({ label: "Teiler", value: teiler(d.teiler) })
       break
+
+    case "SEASON_SERIES_ENTERED":
+      rows.push({ label: "Schütze", value: str(d.participantName) })
+      rows.push({ label: "Datum", value: str(d.sessionDate) })
+      rows.push({ label: "Ringe", value: rings(d.rings) })
+      rows.push({ label: "Teiler", value: teiler(d.teiler) })
+      if (d.disciplineName) rows.push({ label: "Disziplin", value: str(d.disciplineName) })
+      break
+
+    case "SEASON_SERIES_DELETED":
+      rows.push({ label: "Schütze", value: str(d.participantName) })
+      rows.push({ label: "Datum", value: str(d.sessionDate) })
+      rows.push({ label: "Ringe", value: rings(d.rings) })
+      rows.push({ label: "Teiler", value: teiler(d.teiler) })
+      break
   }
 
   return rows
@@ -160,6 +181,8 @@ export function getAuditDescription(eventType: string, details: unknown): string
     case "EVENT_SERIES_ENTERED":
     case "EVENT_SERIES_CORRECTED":
     case "EVENT_SERIES_DELETED":
+    case "SEASON_SERIES_ENTERED":
+    case "SEASON_SERIES_DELETED":
       return d.participantName ? s(d.participantName) : null
 
     default:

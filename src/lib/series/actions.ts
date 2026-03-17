@@ -28,6 +28,11 @@ function revalidateEventPaths(competitionId: string): void {
   revalidatePath(`/competitions/${competitionId}/ranking`)
 }
 
+function revalidateSeasonPaths(competitionId: string): void {
+  revalidatePath(`/competitions/${competitionId}/series`)
+  revalidatePath(`/competitions/${competitionId}/standings`)
+}
+
 // ─────────────────────────────────────────────────────────────
 // SAVE (Create or Update)
 // ─────────────────────────────────────────────────────────────
@@ -201,5 +206,165 @@ export async function deleteEventSeries(
   })
 
   revalidateEventPaths(competitionId)
+  return { success: true }
+}
+
+// ─────────────────────────────────────────────────────────────
+// SAISON-SERIES
+// ─────────────────────────────────────────────────────────────
+
+const SeasonSeriesSchema = SeriesSchema.extend({
+  sessionDate: z
+    .string()
+    .min(1, "Datum ist erforderlich")
+    .transform((v) => new Date(v))
+    .pipe(z.date({ message: "Ungültiges Datum" })),
+  disciplineId: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v || null),
+})
+
+/**
+ * Erfasst eine neue Serie für einen Saison-Teilnehmer.
+ * Mehrere Serien pro Teilnehmer erlaubt — immer create, nie upsert.
+ */
+export async function saveSeasonSeries(
+  competitionId: string,
+  participantId: string,
+  _prevState: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
+  const session = await getAuthSession()
+  if (!session) return { error: "Nicht angemeldet." }
+  if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung." }
+
+  const competition = await db.competition.findUnique({
+    where: { id: competitionId },
+    select: { id: true, type: true, status: true, shotsPerSeries: true, disciplineId: true },
+  })
+  if (!competition) return { error: "Wettbewerb nicht gefunden." }
+  if (competition.type !== "SEASON") return { error: "Nur für Saison-Wettbewerbe." }
+  if (competition.status === "ARCHIVED") return { error: "Archivierte Wettbewerbe sind gesperrt." }
+
+  const cp = await db.competitionParticipant.findUnique({
+    where: { competitionId_participantId: { competitionId, participantId } },
+    select: {
+      id: true,
+      disciplineId: true,
+      discipline: { select: { id: true, name: true, scoringType: true, teilerFaktor: true } },
+      participant: { select: { firstName: true, lastName: true } },
+    },
+  })
+  if (!cp) return { error: "Teilnehmer nicht in diesem Wettbewerb eingeschrieben." }
+
+  const parsed = SeasonSeriesSchema.safeParse({
+    rings: formData.get("rings"),
+    teiler: formData.get("teiler"),
+    sessionDate: formData.get("sessionDate"),
+    disciplineId: formData.get("disciplineId"),
+  })
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  // Disziplin: aus formData (gemischt) → Teilnehmer-Disziplin → Competition-Disziplin
+  const resolvedDisciplineId =
+    parsed.data.disciplineId ?? cp.disciplineId ?? competition.disciplineId
+
+  let discipline = cp.discipline
+  if (!discipline || (parsed.data.disciplineId && parsed.data.disciplineId !== cp.disciplineId)) {
+    if (!resolvedDisciplineId) return { error: "Keine Disziplin konfiguriert." }
+    const found = await db.discipline.findUnique({
+      where: { id: resolvedDisciplineId },
+      select: { id: true, name: true, scoringType: true, teilerFaktor: true },
+    })
+    if (!found) return { error: "Disziplin nicht gefunden." }
+    discipline = found
+  }
+
+  if (!resolvedDisciplineId || !discipline) return { error: "Keine Disziplin konfiguriert." }
+
+  const { rings, teiler, sessionDate } = parsed.data
+  const teilerFaktor = discipline.teilerFaktor.toNumber()
+  const maxRings = MAX_RINGS[discipline.scoringType]
+  const ringteiler = calculateRingteiler(rings, teiler, teilerFaktor, maxRings)
+
+  await db.series.create({
+    data: {
+      competitionId,
+      participantId,
+      disciplineId: resolvedDisciplineId,
+      rings,
+      teiler,
+      ringteiler,
+      shotCount: competition.shotsPerSeries,
+      sessionDate,
+      recordedByUserId: session.user.id,
+    },
+  })
+
+  await db.auditLog.create({
+    data: {
+      eventType: "SEASON_SERIES_ENTERED",
+      entityType: "SERIES",
+      entityId: participantId,
+      userId: session.user.id,
+      competitionId,
+      details: {
+        participantName: `${cp.participant.firstName} ${cp.participant.lastName}`,
+        sessionDate: sessionDate.toISOString().slice(0, 10),
+        rings,
+        teiler,
+        disciplineName: discipline.name,
+      },
+    },
+  })
+
+  revalidateSeasonPaths(competitionId)
+  return { success: true }
+}
+
+/** Löscht eine einzelne Saison-Serie. */
+export async function deleteSeasonSeries(
+  seriesId: string,
+  competitionId: string
+): Promise<ActionResult> {
+  const session = await getAuthSession()
+  if (!session) return { error: "Nicht angemeldet." }
+  if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung." }
+
+  const series = await db.series.findUnique({
+    where: { id: seriesId },
+    select: {
+      id: true,
+      competitionId: true,
+      rings: true,
+      teiler: true,
+      sessionDate: true,
+      participant: { select: { firstName: true, lastName: true } },
+    },
+  })
+  if (!series) return { error: "Serie nicht gefunden." }
+  if (series.competitionId !== competitionId) return { error: "Ungültige Anfrage." }
+
+  await db.series.delete({ where: { id: seriesId } })
+
+  await db.auditLog.create({
+    data: {
+      eventType: "SEASON_SERIES_DELETED",
+      entityType: "SERIES",
+      entityId: seriesId,
+      userId: session.user.id,
+      competitionId,
+      details: {
+        participantName: `${series.participant.firstName} ${series.participant.lastName}`,
+        sessionDate: series.sessionDate.toISOString().slice(0, 10),
+        rings: series.rings,
+        teiler: series.teiler,
+      },
+    },
+  })
+
+  revalidateSeasonPaths(competitionId)
   return { success: true }
 }
