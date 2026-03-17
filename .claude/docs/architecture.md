@@ -16,13 +16,16 @@ Verbindlich gleichrangig mit `.claude/docs/technical.md`. Neue Dateien immer gem
 
 ```
 /login                              ← öffentlich
-/                                   ← Dashboard (Übersicht aktiver Wettbewerbe)
+/                                   ← Dashboard (LEAGUE: Tabelle + Playoffs; non-LEAGUE: EventRankingTable + Rangliste-Link)
 /competitions                       ← alle Wettbewerbe
 /competitions/new                   ← Wettbewerb anlegen (Admin)
+/competitions/[id]                  ← Type-basierter Redirect (Liga → /schedule, Event → /ranking)
 /competitions/[id]/participants     ← Teilnehmer einschreiben/verwalten (Admin)
-/competitions/[id]/schedule         ← Spielplan + Tabelle (unified, Admin)
-/competitions/[id]/standings        ← Ligatabelle (Tabellenberechnung)
-/competitions/[id]/playoffs         ← Playoff-Bracket (Admin)
+/competitions/[id]/schedule         ← Spielplan + Tabelle (Liga/Saison); non-LEAGUE → Redirect zu /ranking
+/competitions/[id]/standings        ← Ligatabelle/Saison-Tabelle (Tabellenberechnung)
+/competitions/[id]/ranking          ← Event-Rangliste
+/competitions/[id]/series           ← Event/Saison Serien-Erfassung (Admin)
+/competitions/[id]/playoffs         ← Playoff-Bracket (Liga, Admin)
 /competitions/[id]/audit-log        ← Wettbewerb-Protokoll (nur Admin)
 /participants                       ← Teilnehmerverwaltung
 /participants/new                   ← Teilnehmer anlegen (Admin)
@@ -58,6 +61,7 @@ src/
         new/
           page.tsx
         [id]/
+          page.tsx                 ← Type-basierter Redirect
           edit/
             page.tsx
           participants/
@@ -66,6 +70,10 @@ src/
             page.tsx
           standings/
             page.tsx
+          ranking/
+            page.tsx               ← Event-Rangliste
+          series/
+            page.tsx               ← Event/Saison Serien-Erfassung
           playoffs/
             page.tsx
           audit-log/
@@ -109,15 +117,20 @@ src/
             playoffs/
               route.ts        ← PDF-Export: Playoff-Bracket
   components/
-    ui/                       ← shadcn/ui (auto-generiert, nicht manuell editieren)
+    ui/
+      checkbox.tsx            ← shadcn/ui Checkbox
     app/
-      competitions/           ← Wettbewerbs-spezifische Komponenten
-      competitionParticipants/ ← Einschreiben + Rückzug
+      competitions/           ← Wettbewerbs-spezifische Komponenten, type badges
+      competitionParticipants/ ← Einschreiben + Rückzug, isGuest/Disziplin-Support
       matchups/               ← Spielplan-Generierung + Anzeige
       results/                ← Ergebniserfassung (Dialog)
       standings/              ← Tabellenberechnung + Anzeige
       playoffs/               ← Playoff-Bracket + Duell-Karten
       auditLog/               ← Protokoll-Liste (AuditLogList)
+      events/                 ← Event-spezifische Komponenten
+        EventSeriesDialog.tsx ← Serie hinzufügen/bearbeiten
+        EventRankingTable.tsx ← Rangliste mit Disziplin + Faktor; `isMixed` prop zeigt "Teiler korr." bei gemischten Wettbewerben
+        DeleteEventSeriesButton.tsx ← Serie löschen
       participants/
       disciplines/
       account/
@@ -135,13 +148,13 @@ src/
     utils.ts                  ← cn() und andere UI-Helfer
     types.ts                  ← Shared Types (ActionResult etc.)
     competitions/
-      actions.ts              ← Server Actions: Wettbewerb anlegen/bearbeiten/abschliessen/force-delete
-      queries.ts              ← Datenbankabfragen: Wettbewerb laden
-      types.ts
+      actions.ts              ← Server Actions: Wettbewerb anlegen/bearbeiten/abschliessen/force-delete, Event-Felder (type, scoringMode, allowGuests, disciplineId)
+      queries.ts              ← Datenbankabfragen: Wettbewerb laden, getEventWithSeries
+      types.ts                ← CompetitionDetail, CompetitionListItem, Event-Typen
     competitionParticipants/
-      actions.ts              ← Einschreiben, Rückzug, Rückzug rückgängig
+      actions.ts              ← Einschreiben, Rückzug, Rückzug rückgängig, isGuest + disciplineId Support
       queries.ts
-      types.ts
+      types.ts                ← isGuest, disciplineId Felder
     matchups/
       actions.ts              ← Spielplan generieren (Round-Robin)
       queries.ts              ← Paarungen laden, Schedule-Status
@@ -162,7 +175,11 @@ src/
       calculateScore.test.ts
       rankParticipants.ts     ← Ranglistenberechnung pro Wertungsmodus
       rankParticipants.test.ts
-      types.ts                ← ScoringMode, ScoreInput, RankableEntry, RankedEntry
+      rankEventParticipants.ts ← Event-Ranking mit Faktor-Korrektur
+      types.ts                ← ScoringMode, ScoreInput, RankableEntry, RankedEntry, EventRankedEntry
+    series/
+      actions.ts              ← saveEventSeries, deleteEventSeries (neue Serie-Verwaltung)
+      types.ts                ← EventSeriesItem, SaveEventSeriesInput
     playoffs/
       actions.ts              ← Playoffs starten, Duell-Ergebnis speichern, Duel anlegen
       queries.ts              ← Bracket-Daten laden

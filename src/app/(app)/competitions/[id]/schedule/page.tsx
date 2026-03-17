@@ -31,6 +31,7 @@ export default async function CompetitionSchedulePage({ params }: Props) {
 
   if (!session) redirect("/login")
   if (!competition) notFound()
+  if (competition.type !== "LEAGUE") redirect(`/competitions/${id}/ranking`)
 
   const isAdmin = session.user.role === "ADMIN"
 

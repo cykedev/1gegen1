@@ -67,7 +67,7 @@
 - **disciplineId: String?** — individuelle Disziplinwahl bei gemischten Wettbewerben; null bei disziplin-gebundenen
 - startNumber: Int?
 - status: ACTIVE | WITHDRAWN
-- **isGuest: Boolean (default false)** — Gastteilnehmer bei Events
+- **isGuest: Boolean (default false)** — Gastteilnehmer bei Events; wird in der Event-Rangliste als "Gast"-Badge angezeigt
 - withdrawalReason, withdrawnAt, withdrawalDate
 
 ### Teilnehmer (Participant)
@@ -85,9 +85,11 @@ Universelle Ergebniseinheit für alle Wettbewerbstypen:
 - **disciplineId: String (FK)** — geschossene Disziplin (wichtig bei gemischten Wettbewerben)
 - **rings: Decimal** — Gesamtringe der Serie
 - **teiler: Decimal** — bester Teiler der Serie
+- **shots: Decimal[]?** — Einzelschusswerte (Pflicht bei DECIMAL_REST-Modus in LEAGUE; optional sonst)
 - **shotCount: Int** — Anzahl Schüsse (default aus Competition.shotsPerSeries)
 - **sessionDate: DateTime** — Schießdatum (relevant für Saison-Modus)
 - **matchupId: String? (FK)** — nur bei Liga: Verknüpfung zur Paarung
+- **isGuest: Boolean (default false)** — Hilfsflag für Event-Rangliste (denormalisiert aus CompetitionParticipant.isGuest)
 
 ### Paarung (Matchup) — nur Liga
 
@@ -217,6 +219,7 @@ Wert = Summe der Nachkommastellen aller Ringe
 - Höchster Wert gewinnt
 - Kein Faktor beteiligt
 - Erfordert Einzelschusswerte (nicht nur Gesamtringe)
+- **Nur in LEAGUE verfügbar** — EVENT und SEASON können DECIMAL_REST nicht verwenden (individuelle Schusswerte sind dort bei Event optional und bei Saison nicht dokumentiert)
 
 ### Wertungsmodus: TARGET_ABSOLUTE (nur EVENT)
 

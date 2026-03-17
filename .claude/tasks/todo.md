@@ -175,53 +175,59 @@ Iterativer Umbau von "1-gegen-1 Liga-App" zu "Ringwerk" — universelle Wettbewe
 
 ---
 
-### Phase 4: Event-Modus (Kranzlschiessen)
+### Phase 4: Event-Modus (Kranzlschiessen) ✓ ABGESCHLOSSEN [2026-03-17]
 
 **Ziel:** Erster neuer Wettbewerbstyp voll funktional. Erstellen, Teilnehmer einschreiben, Serien erfassen, Rangliste anzeigen.
 **Abhaengigkeiten:** Phase 3 abgeschlossen (Scoring-Engine + Serie).
 **Risiko:** GERING — neuer Code, kein Refactoring. Nutzt die universelle Scoring-Engine.
+**Status:** ABGESCHLOSSEN [2026-03-17]
 
 #### Types
 
-- [ ] `src/lib/competitions/types.ts` — Event-spezifische Typen: `EventDetail`, `EventConfig`
+- [x] `src/lib/competitions/types.ts` — Event-spezifische Typen: `EventDetail`, `EventConfig`
+- [x] `src/lib/series/types.ts` (neues Modul) — `EventSeriesItem`, `SaveEventSeriesInput`
 
 #### Queries
 
-- [ ] `src/lib/competitions/queries.ts` — Event-spezifische Abfragen (aktive Events, Event-Detail mit Serien)
+- [x] `src/lib/competitions/queries.ts` — Event-spezifische Abfragen (getEventWithSeries)
 
 #### Actions
 
-- [ ] `src/lib/competitions/actions.ts` — `createEvent`, `updateEvent` (Zod-Schema mit Event-Pflichtfeldern)
-- [ ] `src/lib/series/actions.ts` (neues Modul) — `saveEventSeries` (eine Serie pro Teilnehmer)
+- [x] `src/lib/competitions/actions.ts` — Event-Erstellung mit type + scoringMode + disciplineId + allowGuests
+- [x] `src/lib/series/actions.ts` (neues Modul) — `saveEventSeries`, `deleteEventSeries`
 
 #### Calculate
 
-- [ ] `src/lib/scoring/` — Event-Ranking: `rankEventParticipants(series[], competition)` mit Scoring-Engine
-- [ ] Faktor-Korrektur bei gemischten Disziplinen
-- [ ] TARGET-Modi Implementierung (falls noch nicht in Phase 3 abgedeckt)
+- [x] `src/lib/scoring/rankEventParticipants.ts` — Event-Ranking mit Faktor-Korrektur
+- [x] Faktor-Korrektur bei gemischten Disziplinen
+- [x] TARGET-Modi vollständig in Scoring-Engine (Phase 3)
 
 #### Components
 
-- [ ] Event-Erstellungs-Formular (CompetitionForm mit type=EVENT Feldern)
-- [ ] Event-Teilnehmer-Verwaltung (inkl. Gastschuetzen, Disziplinwahl)
-- [ ] Event-Serien-Erfassung (einfache Liste, eine Serie pro Teilnehmer)
-- [ ] Event-Rangliste (mit Faktor-Korrektur, Disziplin-Anzeige)
+- [x] CompetitionForm — Event-Felder (type selector, allowGuests, disciplineId, scoring)
+- [x] EnrollParticipantForm — isGuest + disciplineId Support
+- [x] EventSeriesDialog — Serie hinzufügen/bearbeiten
+- [x] EventRankingTable — Rangliste mit Disziplin-Anzeige + Faktor
+- [x] DeleteEventSeriesButton — Serie löschen
+- [x] checkbox.tsx — shadcn/ui Component
+- [x] competitions/page.tsx — Type-Badges, Event-Links
 
 #### Pages
 
-- [ ] `/competitions/new` — Event-Erstellung (type=EVENT im Formular)
-- [ ] `/competitions/[id]/series` — Serien-Erfassung fuer Events
-- [ ] `/competitions/[id]/ranking` — Rangliste
+- [x] `/competitions/[id]/page.tsx` — Type-basierter Redirect
+- [x] `/competitions/[id]/series` — Serien-Erfassung für Events
+- [x] `/competitions/[id]/ranking` — Event-Rangliste
 
 #### Tests & Qualitaet
 
-- [ ] Scoring-Engine Tests fuer alle 7 Modi mit Event-Daten
-- [ ] TARGET_UNDER Ranking-Tests (zweistufig)
-- [ ] `/check` — alle Gates gruen
+- [x] Scoring-Engine Events mit allen 7 Modi getestet
+- [x] TARGET_UNDER Ranking Tests
+- [x] `/check` — alle Gates grün
 
 #### Finalisierung
 
-- [ ] `docs/` aktualisieren
+- [x] `docs/architecture.md` — Routen, lib-modules, components aktualisiert
+- [x] `docs/features.md` — Event-Phase als implementiert markiert
 
 ---
 

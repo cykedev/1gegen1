@@ -5,7 +5,7 @@ import type { CompetitionParticipantListItem } from "@/lib/competitionParticipan
 export async function getCompetitionParticipants(
   competitionId: string
 ): Promise<CompetitionParticipantListItem[]> {
-  return db.competitionParticipant.findMany({
+  const rows = await db.competitionParticipant.findMany({
     where: { competitionId },
     select: {
       id: true,
@@ -13,10 +13,21 @@ export async function getCompetitionParticipants(
       status: true,
       startNumber: true,
       withdrawnAt: true,
+      isGuest: true,
+      disciplineId: true,
+      discipline: {
+        select: { id: true, name: true, scoringType: true, teilerFaktor: true },
+      },
       participant: {
         select: { id: true, firstName: true, lastName: true, contact: true },
       },
     },
     orderBy: [{ status: "asc" }, { participant: { lastName: "asc" } }],
   })
+  return rows.map((r) => ({
+    ...r,
+    discipline: r.discipline
+      ? { ...r.discipline, teilerFaktor: r.discipline.teilerFaktor.toNumber() }
+      : null,
+  })) as unknown as CompetitionParticipantListItem[]
 }

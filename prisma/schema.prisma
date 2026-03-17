@@ -211,6 +211,7 @@ model Competition {
   participants   CompetitionParticipant[]
   matchups       Matchup[]
   playoffMatches PlayoffMatch[]
+  series         Series[]
   auditLogs      AuditLog[]
 
   @@index([status])
@@ -316,6 +317,9 @@ model Series {
   // Liga: matchupId gesetzt. Event/Saison: null.
   matchupId     String?
   matchup       Matchup?    @relation(fields: [matchupId], references: [id])
+  // Event/Saison: competitionId gesetzt (direkte Zuordnung ohne Paarung). Liga: null (via matchupId).
+  competitionId String?
+  competition   Competition? @relation(fields: [competitionId], references: [id])
   participantId String
   participant   Participant @relation(fields: [participantId], references: [id])
   // Disziplin dieser Serie (bei Liga: aus Competition.disciplineId)
@@ -345,6 +349,7 @@ model Series {
   // Liga: genau eine Serie pro Schütze pro Paarung (NULL-Werte sind per SQL-Standard distinct)
   @@unique([matchupId, participantId])
   @@index([matchupId])
+  @@index([competitionId])
   @@index([participantId])
   @@index([disciplineId])
 }

@@ -26,6 +26,16 @@ const EnrollSchema = z.object({
       const n = parseInt(v, 10)
       return isNaN(n) ? null : n
     }),
+  isGuest: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v === "true" || v === "on"),
+  disciplineId: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v || null),
 })
 
 export async function enrollParticipant(
@@ -39,7 +49,7 @@ export async function enrollParticipant(
 
   const competition = await db.competition.findUnique({
     where: { id: competitionId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, disciplineId: true },
   })
   if (!competition) return { error: "Wettbewerb nicht gefunden." }
   if (competition.status !== "ACTIVE") {
@@ -49,8 +59,15 @@ export async function enrollParticipant(
   const parsed = EnrollSchema.safeParse({
     participantId: formData.get("participantId"),
     startNumber: formData.get("startNumber"),
+    isGuest: formData.get("isGuest"),
+    disciplineId: formData.get("disciplineId"),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  // Bei gemischtem Wettbewerb (disciplineId = null) muss Disziplin gewählt werden
+  if (!competition.disciplineId && !parsed.data.disciplineId) {
+    return { error: "Bei gemischten Wettbewerben muss eine Disziplin gewählt werden." }
+  }
 
   const existing = await db.competitionParticipant.findUnique({
     where: {
@@ -68,6 +85,8 @@ export async function enrollParticipant(
       competitionId,
       participantId: parsed.data.participantId,
       startNumber: parsed.data.startNumber,
+      isGuest: parsed.data.isGuest,
+      disciplineId: parsed.data.disciplineId,
     },
   })
 

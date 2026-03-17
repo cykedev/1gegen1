@@ -99,10 +99,10 @@ describe("createCompetition", () => {
     expect(competitionCreateMock).not.toHaveBeenCalled()
   })
 
-  it("liefert Validierungsfehler bei fehlender Disziplin", async () => {
+  it("liefert Validierungsfehler bei fehlendem Wertungsmodus", async () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
-    const result = await createCompetition(null, makeFormData({ name: "Liga A", disciplineId: "" }))
-    expect(result).toMatchObject({ error: { disciplineId: expect.any(Array) } })
+    const result = await createCompetition(null, makeFormData({ name: "Liga A", type: "LEAGUE" }))
+    expect(result).toMatchObject({ error: { scoringMode: expect.any(Array) } })
     expect(competitionCreateMock).not.toHaveBeenCalled()
   })
 
@@ -111,7 +111,12 @@ describe("createCompetition", () => {
     disciplineFindUniqueMock.mockResolvedValue(null)
     const result = await createCompetition(
       null,
-      makeFormData({ name: "Liga A", disciplineId: "d99" })
+      makeFormData({
+        name: "Liga A",
+        type: "LEAGUE",
+        scoringMode: "RINGTEILER",
+        disciplineId: "d99",
+      })
     )
     expect(result).toEqual({ error: "Disziplin nicht gefunden." })
     expect(competitionCreateMock).not.toHaveBeenCalled()
@@ -119,17 +124,24 @@ describe("createCompetition", () => {
 
   it("legt Wettbewerb an und gibt success zurück", async () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
+    competitionCreateMock.mockResolvedValue({ id: "comp-1" })
     const result = await createCompetition(
       null,
-      makeFormData({ name: "Winterliga 2026", disciplineId: "d1" })
+      makeFormData({
+        name: "Winterliga 2026",
+        type: "LEAGUE",
+        scoringMode: "RINGTEILER",
+        disciplineId: "d1",
+      })
     )
-    expect(result).toEqual({ success: true })
+    expect(result).toMatchObject({ success: true })
     expect(competitionCreateMock).toHaveBeenCalledWith({
       data: expect.objectContaining({
         name: "Winterliga 2026",
         disciplineId: "d1",
         createdByUserId: "u1",
       }),
+      select: expect.anything(),
     })
     expect(revalidatePathMock).toHaveBeenCalled()
   })
@@ -141,7 +153,7 @@ describe("updateCompetition", () => {
   beforeEach(() => {
     vi.resetAllMocks()
     competitionUpdateMock.mockResolvedValue({})
-    competitionFindUniqueMock.mockResolvedValue({ id: "c1" })
+    competitionFindUniqueMock.mockResolvedValue({ id: "c1", type: "LEAGUE" })
   })
 
   it("liefert Fehler ohne Session", async () => {
@@ -165,7 +177,11 @@ describe("updateCompetition", () => {
 
   it("ignoriert disciplineId im Update", async () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
-    await updateCompetition("c1", null, makeFormData({ name: "Liga B", disciplineId: "d-neu" }))
+    await updateCompetition(
+      "c1",
+      null,
+      makeFormData({ name: "Liga B", scoringMode: "RINGTEILER", disciplineId: "d-neu" })
+    )
     expect(competitionUpdateMock).toHaveBeenCalledWith({
       where: { id: "c1" },
       data: expect.not.objectContaining({ disciplineId: expect.anything() }),
@@ -174,7 +190,11 @@ describe("updateCompetition", () => {
 
   it("aktualisiert Name und gibt success zurück", async () => {
     getAuthSessionMock.mockResolvedValue(adminSession)
-    const result = await updateCompetition("c1", null, makeFormData({ name: "Neuer Wettbewerb" }))
+    const result = await updateCompetition(
+      "c1",
+      null,
+      makeFormData({ name: "Neuer Wettbewerb", scoringMode: "RINGTEILER" })
+    )
     expect(result).toEqual({ success: true })
     expect(competitionUpdateMock).toHaveBeenCalledWith({
       where: { id: "c1" },

@@ -7,6 +7,9 @@ export type AuditEventType =
   | "PLAYOFF_RESULT_CORRECTED"
   | "PLAYOFF_DUEL_DELETED"
   | "PLAYOFFS_STARTED"
+  | "EVENT_SERIES_ENTERED"
+  | "EVENT_SERIES_CORRECTED"
+  | "EVENT_SERIES_DELETED"
 
 export const AUDIT_EVENT_LABELS: Record<string, string> = {
   PARTICIPANT_WITHDRAWN: "Teilnehmer zurückgezogen",
@@ -17,6 +20,9 @@ export const AUDIT_EVENT_LABELS: Record<string, string> = {
   PLAYOFF_RESULT_CORRECTED: "Playoff-Ergebnis korrigiert",
   PLAYOFF_DUEL_DELETED: "Playoff-Duell gelöscht",
   PLAYOFFS_STARTED: "Playoffs gestartet",
+  EVENT_SERIES_ENTERED: "Serie erfasst",
+  EVENT_SERIES_CORRECTED: "Serie korrigiert",
+  EVENT_SERIES_DELETED: "Serie gelöscht",
 }
 
 export type AuditEventCategory = "participant" | "result" | "playoff" | "destructive"
@@ -30,6 +36,9 @@ export const AUDIT_EVENT_CATEGORY: Record<string, AuditEventCategory> = {
   PLAYOFF_RESULT_CORRECTED: "playoff",
   PLAYOFF_DUEL_DELETED: "destructive",
   PLAYOFFS_STARTED: "playoff",
+  EVENT_SERIES_ENTERED: "result",
+  EVENT_SERIES_CORRECTED: "result",
+  EVENT_SERIES_DELETED: "destructive",
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -99,6 +108,20 @@ export function formatAuditDetails(eventType: string, details: unknown): DetailR
     case "PLAYOFFS_STARTED":
       rows.push({ label: "Teilnehmer", value: str(d.participantCount) })
       break
+
+    case "EVENT_SERIES_ENTERED":
+    case "EVENT_SERIES_CORRECTED":
+      rows.push({ label: "Schütze", value: str(d.participantName) })
+      rows.push({ label: "Ringe", value: rings(d.rings) })
+      rows.push({ label: "Teiler", value: teiler(d.teiler) })
+      if (d.disciplineName) rows.push({ label: "Disziplin", value: str(d.disciplineName) })
+      break
+
+    case "EVENT_SERIES_DELETED":
+      rows.push({ label: "Schütze", value: str(d.participantName) })
+      rows.push({ label: "Ringe", value: rings(d.rings) })
+      rows.push({ label: "Teiler", value: teiler(d.teiler) })
+      break
   }
 
   return rows
@@ -133,6 +156,11 @@ export function getAuditDescription(eventType: string, details: unknown): string
 
     case "PLAYOFFS_STARTED":
       return d.participantCount ? `${s(d.participantCount)} Teilnehmer` : null
+
+    case "EVENT_SERIES_ENTERED":
+    case "EVENT_SERIES_CORRECTED":
+    case "EVENT_SERIES_DELETED":
+      return d.participantName ? s(d.participantName) : null
 
     default:
       return null

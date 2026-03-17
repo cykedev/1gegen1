@@ -116,6 +116,7 @@ Regelset ist **nach Spielplan-Generierung gesperrt** — Änderungen nur vor dem
 - Ungerade Teilnehmerzahl → jeder bekommt einmal Freilos (2 Punkte)
 - Mindest-Teilnehmerzahl: 4
 - Regenerierung möglich solange keine abgeschlossenen Paarungen
+- **Non-LEAGUE-Navigierung:** Wenn auf `/competitions/[id]/schedule` mit Event/Saison zugegriffen wird → Automatisches Redirect zu `/competitions/[id]/ranking`
 
 ### Heimrecht
 
@@ -214,7 +215,7 @@ App-Umfang: **nur Ergebniserfassung** (keine Zeitnahme oder Ansage-Unterstützun
 
 ---
 
-## Event-Modus (EVENT)
+## Event-Modus (EVENT) ✓ IMPLEMENTIERT (Phase 4)
 
 ### Konzept
 
@@ -230,28 +231,30 @@ Alle Teilnehmer schiessen, eine Rangliste wird erstellt.
 | disciplineId    | null = gemischt (Faktor aktiv), oder fixe Disziplin       |
 | eventDate       | Veranstaltungsdatum                                       |
 | allowGuests     | Gastteilnehmer zugelassen                                 |
-| teamSize        | null = Einzel; 2+ = Teamgröße                             |
+| teamSize        | null = Einzel; 2+ = Teamgröße (noch nicht implementiert)  |
 | targetValue     | Zielwert für TARGET-Modi (z.B. 512 oder 76.0)             |
 | targetValueType | TEILER, RINGS oder RINGS_DECIMAL                          |
 
-### Teilnehmer & Gäste
+### Teilnehmer & Gäste ✓
 
 - Vereinsmitglieder werden aus dem Teilnehmerpool eingeschrieben
 - Gäste: werden als Participant angelegt mit `isGuest: true` auf CompetitionParticipant
 - Bei gemischten Disziplinen: jeder Teilnehmer wählt seine Disziplin bei der Anmeldung
 
-### Serien-Erfassung
+### Serien-Erfassung ✓
 
 - Jeder Teilnehmer schießt **eine Serie** pro Event
 - Admin erfasst: Gesamtringe + Teiler (+ optional Einzelschüsse)
-- Bei DECIMAL_REST-Modus: Einzelschüsse sind **Pflicht** (Nachkommastellen benötigt)
+- Bei DECIMAL_REST-Modus: Einzelschüsse sind **Pflicht** (Nachkommastellen benötigt); **nur in LEAGUE** (EVENT/SEASON können DECIMAL_REST nicht verwenden)
 
-### Rangliste
+### Rangliste ✓
 
 - Berechnung gemaess scoringMode mit Faktor-Korrektur (bei gemischten Disziplinen)
 - Anzeige: Platzierung, Name, Disziplin, Ringe, Teiler (korrigiert), Ergebniswert
+- Bei gemischten Wettbewerben: Spalte "Teiler korr." zeigt die mit Faktor korrigierten Teiler-Werte
+- Gastteilnehmer erhalten Badge "Gast" neben dem Namen
 
-### Zielwert-Modus
+### Zielwert-Modus ✓
 
 Nur bei Events. Zwei Varianten:
 
@@ -346,8 +349,17 @@ Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehören zusam
 
 ## Visualisierung & Auswertung
 
-- **Liga:** Interaktive Tabelle, K.O.-Bracket, Punkteverlauf (Liniendiagramm)
-- **Event:** Rangliste mit Disziplin, Ergebniswert und Faktor-Korrektur
+### Dashboard-Aufteilung (Phase 4)
+
+Das Haupt-Dashboard unterteilt aktive Wettbewerbe nach Typ:
+
+- **Liga (LEAGUE):** Interaktive Tabelle, K.O.-Bracket, Punkteverlauf (Liniendiagramm); Spielplan-Navigation
+- **Event & Saison (non-LEAGUE):** EventRankingTable (mit Disziplin + korrigiertem Teiler bei gemischt) + Link zu Rangliste
+
+### Auswertungen pro Typ
+
+- **Liga:** Spielplan (Hin-/Rückrunde), Tabelle, Playoffs
+- **Event:** Rangliste mit Disziplin, Ergebniswert und Faktor-Korrektur (bei gemischt: "Teiler korr." angezeigt)
 - **Saison:** Mehrfach-Tabelle (Ringe, Teiler, Ringteiler), Serien-Verlauf, Fortschrittsanzeige
 - **Alle:** Paarungsplan/Serienliste, Profil-Seite je Teilnehmer
 - Export: Spielplan + Tabelle als druckoptimiertes PDF (nur Liga)
@@ -389,6 +401,9 @@ Ringteiler muss aus **derselben Serie** stammen (Ringe und Teiler gehören zusam
 | PLAYOFF_RESULT_ENTERED   | Playoff-Duell-Ergebnis eingetragen |
 | PLAYOFF_RESULT_CORRECTED | Playoff-Duell korrigiert           |
 | PLAYOFF_DUEL_DELETED     | Playoff-Duell gelöscht             |
+| EVENT_SERIES_ENTERED     | Serie bei Event eingetragen        |
+| EVENT_SERIES_CORRECTED   | Serie bei Event korrigiert         |
+| EVENT_SERIES_DELETED     | Serie bei Event gelöscht           |
 
 - Details-JSON als Snapshot (denormalisiert, kein Verweis)
 - Wettbewerb-Protokoll: pro Wettbewerb; Globales Protokoll: alle Wettbewerbe

@@ -7,14 +7,9 @@ import { getAuthSession } from "@/lib/auth-helpers"
 import type { ActionResult } from "@/lib/types"
 import type { CompetitionStatus } from "@/generated/prisma/client"
 
-const CompetitionSchema = z.object({
-  name: z.string().min(1, "Name ist erforderlich").max(100, "Name zu lang"),
-  disciplineId: z.string().min(1, "Disziplin ist erforderlich"),
-  hinrundeDeadline: z.string().nullable().optional(),
-  rueckrundeDeadline: z.string().nullable().optional(),
-})
+// ─── Shared helpers ────────────────────────────────────────────────────────
 
-function parseDeadline(value: string | null | undefined): Date | null {
+function parseDate(value: string | null | undefined): Date | null {
   if (!value || value.trim() === "") return null
   const d = new Date(value)
   return isNaN(d.getTime()) ? null : d
@@ -25,44 +20,123 @@ function revalidateCompetitionPaths(): void {
   revalidatePath("/competitions", "layout")
 }
 
+// ─── Schemas ───────────────────────────────────────────────────────────────
+
+const BaseSchema = z.object({
+  name: z.string().min(1, "Name ist erforderlich").max(100, "Name zu lang"),
+  scoringMode: z.enum(
+    [
+      "RINGTEILER",
+      "RINGS",
+      "RINGS_DECIMAL",
+      "TEILER",
+      "DECIMAL_REST",
+      "TARGET_ABSOLUTE",
+      "TARGET_UNDER",
+    ],
+    { message: "Ungültiger Wertungsmodus" }
+  ),
+  shotsPerSeries: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v ? parseInt(v, 10) : 10))
+    .pipe(z.number().min(1).max(100)),
+  disciplineId: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v && v !== "mixed" ? v : null)),
+  // Liga
+  hinrundeDeadline: z.string().nullable().optional(),
+  rueckrundeDeadline: z.string().nullable().optional(),
+  // Event
+  eventDate: z.string().nullable().optional(),
+  allowGuests: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v === "true" || v === "on"),
+  teamSize: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v && v.trim() !== "" ? parseInt(v, 10) : null)),
+  targetValue: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => (v && v.trim() !== "" ? parseFloat(v.replace(",", ".")) : null)),
+  targetValueType: z
+    .enum(["TEILER", "RINGS", "RINGS_DECIMAL"])
+    .nullable()
+    .optional()
+    .transform((v) => v || null),
+})
+
+const CreateSchema = BaseSchema.extend({
+  type: z.enum(["LEAGUE", "EVENT", "SEASON"], { message: "Ungültiger Wettbewerbstyp" }),
+})
+
 // ─────────────────────────────────────────────────────────────
 // CREATE
 // ─────────────────────────────────────────────────────────────
 
 export async function createCompetition(
-  _prevState: ActionResult | null,
+  _prevState: ActionResult<{ id: string }> | null,
   formData: FormData
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string }>> {
   const session = await getAuthSession()
   if (!session) return { error: "Nicht angemeldet" }
   if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung" }
 
-  const parsed = CompetitionSchema.safeParse({
+  const parsed = CreateSchema.safeParse({
     name: formData.get("name"),
+    type: formData.get("type"),
+    scoringMode: formData.get("scoringMode"),
+    shotsPerSeries: formData.get("shotsPerSeries"),
     disciplineId: formData.get("disciplineId"),
     hinrundeDeadline: formData.get("hinrundeDeadline"),
     rueckrundeDeadline: formData.get("rueckrundeDeadline"),
+    eventDate: formData.get("eventDate"),
+    allowGuests: formData.get("allowGuests"),
+    teamSize: formData.get("teamSize"),
+    targetValue: formData.get("targetValue"),
+    targetValueType: formData.get("targetValueType"),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
-  const discipline = await db.discipline.findUnique({
-    where: { id: parsed.data.disciplineId },
-    select: { id: true },
-  })
-  if (!discipline) return { error: "Disziplin nicht gefunden." }
+  const { type, name, scoringMode, shotsPerSeries, disciplineId } = parsed.data
 
-  await db.competition.create({
+  if (disciplineId) {
+    const discipline = await db.discipline.findUnique({
+      where: { id: disciplineId },
+      select: { id: true },
+    })
+    if (!discipline) return { error: "Disziplin nicht gefunden." }
+  }
+
+  const competition = await db.competition.create({
     data: {
-      name: parsed.data.name,
-      disciplineId: parsed.data.disciplineId,
-      hinrundeDeadline: parseDeadline(parsed.data.hinrundeDeadline),
-      rueckrundeDeadline: parseDeadline(parsed.data.rueckrundeDeadline),
+      name,
+      type,
+      scoringMode,
+      shotsPerSeries,
+      disciplineId,
+      hinrundeDeadline: parseDate(parsed.data.hinrundeDeadline),
+      rueckrundeDeadline: parseDate(parsed.data.rueckrundeDeadline),
+      eventDate: parseDate(parsed.data.eventDate),
+      allowGuests: type === "EVENT" ? parsed.data.allowGuests : null,
+      teamSize: type === "EVENT" ? (parsed.data.teamSize ?? null) : null,
+      targetValue: type === "EVENT" ? (parsed.data.targetValue ?? null) : null,
+      targetValueType: type === "EVENT" ? (parsed.data.targetValueType ?? null) : null,
       createdByUserId: session.user.id,
     },
+    select: { id: true },
   })
 
   revalidateCompetitionPaths()
-  return { success: true }
+  return { success: true, data: { id: competition.id } }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -78,28 +152,42 @@ export async function updateCompetition(
   if (!session) return { error: "Nicht angemeldet" }
   if (session.user.role !== "ADMIN") return { error: "Keine Berechtigung" }
 
-  const competition = await db.competition.findUnique({ where: { id }, select: { id: true } })
+  const competition = await db.competition.findUnique({
+    where: { id },
+    select: { id: true, type: true },
+  })
   if (!competition) return { error: "Wettbewerb nicht gefunden." }
 
-  const UpdateSchema = z.object({
-    name: z.string().min(1, "Name ist erforderlich").max(100, "Name zu lang"),
-    hinrundeDeadline: z.string().nullable().optional(),
-    rueckrundeDeadline: z.string().nullable().optional(),
-  })
-
-  const parsed = UpdateSchema.safeParse({
+  const parsed = BaseSchema.safeParse({
     name: formData.get("name"),
+    scoringMode: formData.get("scoringMode"),
+    shotsPerSeries: formData.get("shotsPerSeries"),
+    disciplineId: formData.get("disciplineId"),
     hinrundeDeadline: formData.get("hinrundeDeadline"),
     rueckrundeDeadline: formData.get("rueckrundeDeadline"),
+    eventDate: formData.get("eventDate"),
+    allowGuests: formData.get("allowGuests"),
+    teamSize: formData.get("teamSize"),
+    targetValue: formData.get("targetValue"),
+    targetValueType: formData.get("targetValueType"),
   })
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const type = competition.type
 
   await db.competition.update({
     where: { id },
     data: {
       name: parsed.data.name,
-      hinrundeDeadline: parseDeadline(parsed.data.hinrundeDeadline),
-      rueckrundeDeadline: parseDeadline(parsed.data.rueckrundeDeadline),
+      scoringMode: parsed.data.scoringMode,
+      shotsPerSeries: parsed.data.shotsPerSeries,
+      hinrundeDeadline: parseDate(parsed.data.hinrundeDeadline),
+      rueckrundeDeadline: parseDate(parsed.data.rueckrundeDeadline),
+      eventDate: type === "EVENT" ? parseDate(parsed.data.eventDate) : undefined,
+      allowGuests: type === "EVENT" ? parsed.data.allowGuests : undefined,
+      teamSize: type === "EVENT" ? (parsed.data.teamSize ?? null) : undefined,
+      targetValue: type === "EVENT" ? (parsed.data.targetValue ?? null) : undefined,
+      targetValueType: type === "EVENT" ? (parsed.data.targetValueType ?? null) : undefined,
     },
   })
 
@@ -213,7 +301,7 @@ export async function forceDeleteCompetition(
       })
       const playoffMatchIds = playoffMatches.map((pm) => pm.id)
 
-      // 2. Bottom-up löschen
+      // 2. Playoff-Struktur löschen
       if (playoffMatchIds.length > 0) {
         const playoffDuels = await tx.playoffDuel.findMany({
           where: { playoffMatchId: { in: playoffMatchIds } },
@@ -235,6 +323,7 @@ export async function forceDeleteCompetition(
         })
       }
 
+      // 3. Liga-Serien (via matchupId)
       if (matchupIds.length > 0) {
         await tx.series.deleteMany({
           where: { matchupId: { in: matchupIds } },
@@ -243,9 +332,11 @@ export async function forceDeleteCompetition(
 
       await tx.matchup.deleteMany({ where: { competitionId } })
 
-      // AuditLog-Einträge bereinigen
-      await tx.auditLog.deleteMany({ where: { competitionId } })
+      // 4. Event/Saison-Serien (via competitionId)
+      await tx.series.deleteMany({ where: { competitionId } })
 
+      // 5. AuditLog + Teilnehmer + Wettbewerb
+      await tx.auditLog.deleteMany({ where: { competitionId } })
       await tx.competitionParticipant.deleteMany({ where: { competitionId } })
       await tx.competition.delete({ where: { id: competitionId } })
     })
