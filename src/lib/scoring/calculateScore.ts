@@ -20,7 +20,7 @@ export function calculateRingteiler(
   faktor: number,
   maxRings: number
 ): number {
-  return maxRings - rings + teiler * faktor
+  return Math.round((maxRings - rings + teiler * faktor) * 10) / 10
 }
 
 /**

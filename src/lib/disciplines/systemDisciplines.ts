@@ -8,7 +8,7 @@ interface SystemDiscipline {
 
 // Vorinstallierte Standarddisziplinen gemäss features.md
 const SYSTEM_DISCIPLINES: SystemDiscipline[] = [
-  { name: "Luftpistole", scoringType: "WHOLE", teilerFaktor: 0.333 },
+  { name: "Luftpistole", scoringType: "WHOLE", teilerFaktor: 0.3333333 },
   { name: "Luftgewehr", scoringType: "WHOLE", teilerFaktor: 1.0 },
   { name: "Luftpistole Auflage", scoringType: "DECIMAL", teilerFaktor: 0.6 },
   { name: "Luftgewehr Auflage", scoringType: "DECIMAL", teilerFaktor: 1.8 },

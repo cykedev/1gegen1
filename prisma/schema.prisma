@@ -138,7 +138,7 @@ model Discipline {
   name         String
   scoringType  ScoringType
   // Korrekturfaktor fuer gemischte Wertungen (z.B. LP=0.333, LG=1.0)
-  teilerFaktor Decimal     @db.Decimal(4, 3) @default(1.0)
+  teilerFaktor Decimal     @db.Decimal(9, 7) @default(1.0)
   // MaxRinge/Seite wird aus scoringType abgeleitet: WHOLE→100, DECIMAL→109
   // isSystem: true → von startup.ts angelegt
   isSystem     Boolean     @default(false)

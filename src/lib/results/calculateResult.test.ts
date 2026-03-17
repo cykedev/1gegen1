@@ -31,9 +31,9 @@ describe("calculateRingteiler", () => {
     expect(calculateRingteiler(105.0, 1.8, 1.0, 109)).toBeCloseTo(5.8)
   })
 
-  it("wendet teilerFaktor an (Luftpistole 0.333)", () => {
-    // 90 Ringe, Teiler 60, Faktor 0.333 → RT = 100 - 90 + 19.98 = 29.98
-    expect(calculateRingteiler(90, 60, 0.333, 100)).toBeCloseTo(29.98)
+  it("wendet teilerFaktor an (Luftpistole 0.3333333)", () => {
+    // 90 Ringe, Teiler 60, Faktor 1/3 → RT = 100 - 90 + 20.0 = 30.0
+    expect(calculateRingteiler(90, 60, 0.3333333, 100)).toBe(30.0)
   })
 
   it("niedrigerer Ringteiler bei besserem Schützen", () => {

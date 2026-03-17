@@ -5,8 +5,8 @@ describe("calculateCorrectedTeiler", () => {
   it("Faktor 1.0 lässt Teiler unverändert", () => {
     expect(calculateCorrectedTeiler(20, 1.0)).toBeCloseTo(20)
   })
-  it("Faktor 0.333 (Luftpistole)", () => {
-    expect(calculateCorrectedTeiler(60, 0.333)).toBeCloseTo(19.98)
+  it("Faktor 0.3333333 (Luftpistole 1/3)", () => {
+    expect(calculateCorrectedTeiler(60, 0.3333333)).toBeCloseTo(20.0)
   })
   it("Faktor 1.8 (LG Auflage)", () => {
     expect(calculateCorrectedTeiler(10, 1.8)).toBeCloseTo(18)
@@ -23,8 +23,11 @@ describe("calculateRingteiler", () => {
   it("Zehntelringe: 109 − 104.5 + 2.1 × 1.0 = 6.6", () => {
     expect(calculateRingteiler(104.5, 2.1, 1.0, 109)).toBeCloseTo(6.6)
   })
-  it("Faktor 0.333 (Luftpistole): 100 − 90 + 60 × 0.333 = 29.98", () => {
-    expect(calculateRingteiler(90, 60, 0.333, 100)).toBeCloseTo(29.98)
+  it("Faktor 0.3333333 (Luftpistole 1/3): 100 − 90 + 60 × 1/3 ≈ 30.0", () => {
+    expect(calculateRingteiler(90, 60, 0.3333333, 100)).toBe(30.0)
+  })
+  it("Präzisionstest: 60.2 × 0.3333333 rundet korrekt auf 20.1", () => {
+    expect(calculateRingteiler(90, 60.2, 0.3333333, 100)).toBe(30.1)
   })
   it("niedrigerer Ringteiler bei besserem Schützen", () => {
     const a = calculateRingteiler(96, 3.7, 1.0, 100)
@@ -39,11 +42,11 @@ describe("calculateScore – RINGTEILER", () => {
       calculateScore("RINGTEILER", { rings: 96, teiler: 3.7, faktor: 1.0, maxRings: 100 })
     ).toBeCloseTo(7.7)
   })
-  it("wendet teilerFaktor an (Luftpistole 0.333)", () => {
-    // 100 − 90 + 60 × 0.333 = 29.98
+  it("wendet teilerFaktor an (Luftpistole 0.3333333)", () => {
+    // 100 − 90 + 60 × 1/3 ≈ 30.0
     expect(
-      calculateScore("RINGTEILER", { rings: 90, teiler: 60, faktor: 0.333, maxRings: 100 })
-    ).toBeCloseTo(29.98)
+      calculateScore("RINGTEILER", { rings: 90, teiler: 60, faktor: 0.3333333, maxRings: 100 })
+    ).toBe(30.0)
   })
   it("Zehntelringe mit Faktor", () => {
     expect(
@@ -58,7 +61,7 @@ describe("calculateScore – RINGS", () => {
   })
   it("Faktor hat keinen Einfluss", () => {
     const a = calculateScore("RINGS", { rings: 95, teiler: 5, faktor: 1.0, maxRings: 100 })
-    const b = calculateScore("RINGS", { rings: 95, teiler: 5, faktor: 0.333, maxRings: 100 })
+    const b = calculateScore("RINGS", { rings: 95, teiler: 5, faktor: 0.3333333, maxRings: 100 })
     expect(a).toBe(b)
   })
 })
@@ -77,10 +80,10 @@ describe("calculateScore – TEILER", () => {
       calculateScore("TEILER", { rings: 90, teiler: 20, faktor: 1.0, maxRings: 100 })
     ).toBeCloseTo(20)
   })
-  it("wendet teilerFaktor an (LP 0.333): 60 × 0.333 = 19.98", () => {
+  it("wendet teilerFaktor an (LP 0.3333333): 60 × 1/3 ≈ 20.0", () => {
     expect(
-      calculateScore("TEILER", { rings: 90, teiler: 60, faktor: 0.333, maxRings: 100 })
-    ).toBeCloseTo(19.98)
+      calculateScore("TEILER", { rings: 90, teiler: 60, faktor: 0.3333333, maxRings: 100 })
+    ).toBeCloseTo(20.0)
   })
 })
 
