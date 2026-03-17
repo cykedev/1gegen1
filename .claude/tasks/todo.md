@@ -125,58 +125,53 @@ Iterativer Umbau von "1-gegen-1 Liga-App" zu "Ringwerk" — universelle Wettbewe
 **Ziel:** MatchResult → Series. Eine Scoring-Engine fuer alle 7 Wertungsmodi. Faktor-Korrektur integriert.
 **Abhaengigkeiten:** Phase 2 abgeschlossen.
 **Risiko:** MITTEL — Berechnungslogik aendert sich, aber gut testbar (Pure Functions).
+**Status:** ABGESCHLOSSEN [2026-03-17]
 
 #### Schema & Migration
 
-- [ ] `prisma/schema.prisma` — `MatchResult` zu `Series` umbenennen; Relationen in `User`, `Participant`, `Matchup` anpassen
-- [ ] `prisma/schema.prisma` — `totalRings` → `rings` umbenennen (`teiler` bleibt unveraendert — Feld heisst bereits so)
-- [ ] `prisma/schema.prisma` — `Series` erweitern: `disciplineId String (FK Discipline)`, `shotCount Int`, `sessionDate DateTime`
-- [ ] `prisma/schema.prisma` — `matchupId String?` nullable machen (NULL-Werte verletzen `@@unique` nicht — korrekt fuer Event/Saison-Serien)
-- [ ] Manuelle Migration `rename-matchresult-to-series` mit Backfill:
-  - `disciplineId` ← `Matchup → Competition → disciplineId`
-  - `shotCount` ← `Competition.shotsPerSeries`
-  - `sessionDate` ← `Matchup.dueDate` (Fallback: `MatchResult.createdAt`)
+- [x] `prisma/schema.prisma` — `MatchResult` zu `Series` umbenennen; Relationen in `User`, `Participant`, `Matchup` anpassen
+- [x] `prisma/schema.prisma` — `totalRings` → `rings` umbenennen
+- [x] `prisma/schema.prisma` — `Series` erweitern: `disciplineId`, `shotCount`, `sessionDate`
+- [x] `prisma/schema.prisma` — `matchupId String?` nullable
+- [x] `prisma/schema.prisma` — `teilerFaktor Decimal(9,7)` (Praezisions-Fix: 7 Nachkommastellen)
+- [x] Manuelle Migration `rename-matchresult-to-series` mit Backfill
+- [x] Migration `teilerFaktor_precision` (Decimal(4,3) → Decimal(9,7))
 
 #### Scoring-Engine (neues Modul)
 
-- [ ] `src/lib/scoring/types.ts` — ScoringInput, RankedEntry, etc.
-- [ ] `src/lib/scoring/calculateScore.ts` — universelle Score-Berechnung:
-  - `calculateCorrectedTeiler(teiler, faktor): number` — `teiler * faktor`
-  - `calculateRingteiler(rings, teiler, faktor, maxRings): number` — `maxRings - rings + (teiler * faktor)` **(teilerFaktor wird ab Phase 3 aktiv angewendet)**
-  - `calculateScore(mode, rings, teiler, faktor, maxRings, shots?, targetValue?): number` — alle 7 Modi
-- [ ] `src/lib/scoring/rankParticipants.ts` — generische Rangliste:
-  - `rankByScore(entries[], mode): RankedEntry[]`
-  - TARGET_UNDER: zweistufiges Ranking (≤ Zielwert zuerst)
-- [ ] `src/lib/scoring/calculateScore.test.ts` — parametrisierte Tests fuer alle 7 Modi + Faktor-Kombinationen
-- [ ] `src/lib/scoring/rankParticipants.test.ts` — Ranking-Tests inkl. TARGET-Modi
+- [x] `src/lib/scoring/types.ts` — ScoringMode, ScoreInput, RankableEntry, RankedEntry
+- [x] `src/lib/scoring/calculateScore.ts` — alle 7 Modi + `calculateRingteiler` mit 1dp-Rundung
+- [x] `src/lib/scoring/rankParticipants.ts` — `rankByScore` mit TARGET_UNDER-Zweistufenranking
+- [x] `src/lib/scoring/calculateScore.test.ts` — 26 Tests
+- [x] `src/lib/scoring/rankParticipants.test.ts` — 12 Tests
 
 #### Bestehende Logik migrieren
 
-- [ ] `src/lib/results/calculateResult.ts` — `calcRingteiler` nutzt Scoring-Engine; `determineOutcome` erhaelt `scoringMode`-Parameter (Default: RINGTEILER, Vorbereitung fuer Phase 6) **(teilerFaktor wird jetzt angewendet — breaking change bei berechneten ringteiler-Werten, pre-launch unproblematisch)**
-- [ ] `src/lib/standings/calculateStandings.ts` — `bestRingteiler` via Scoring-Engine berechnen
-- [ ] `src/lib/results/calculateResult.test.ts` — Tests anpassen (neuer scoringMode-Parameter + Faktor)
-- [ ] `src/lib/standings/calculateStandings.test.ts` — Tests anpassen
+- [x] `src/lib/results/calculateResult.ts` — nutzt Scoring-Engine; `determineOutcome` mit `scoringMode`-Parameter
+- [x] `src/lib/standings/calculateStandings.ts` — `rings` statt `totalRings`
+- [x] `src/lib/results/calculateResult.test.ts` — Tests angepasst
+- [x] `src/lib/standings/calculateStandings.test.ts` — Tests angepasst
 
 #### Queries & Actions
 
-- [ ] `src/lib/results/actions.ts` — MatchResult-Referenzen → Series
-- [ ] `src/lib/results/queries.ts` (falls vorhanden) — anpassen
-- [ ] `src/lib/matchups/queries.ts` — Nested Select: MatchResult → Series
+- [x] `src/lib/results/actions.ts` — Series, teilerFaktor aktiv angewendet
+- [x] `src/lib/matchups/queries.ts` — Series statt MatchResult
+- [x] `src/lib/standings/queries.ts` — Series statt MatchResult
+- [x] `src/lib/competitions/actions.ts` — series.deleteMany
 
 #### Components
 
-- [ ] Ergebnisanzeige-Komponenten: MatchResult-Referenzen → Series
-- [ ] `ScheduleView.tsx` — anpassen
+- [x] `ScheduleView.tsx`, `ResultEntryDialog.tsx`, `SchedulePdf.tsx` — rings statt totalRings
 
 #### Tests & Qualitaet
 
-- [ ] Alle bestehenden Calculate-Tests muessen gruen bleiben
-- [ ] Neue Tests fuer Scoring-Engine (Prioritaet: hohe Abdeckung)
-- [ ] `/check` — alle Gates gruen
+- [x] 157 Tests gruen
+- [x] `/check` — alle Gates gruen
 
 #### Finalisierung
 
-- [ ] `docs/data-model.md` — bestaetigen dass Berechnungsregeln korrekt dokumentiert sind
+- [x] `docs/data-model.md`, `docs/features.md`, `docs/architecture.md` aktualisiert
+- [x] `systemDisciplines.ts` — LP-Faktor 0.333 → 0.3333333
 
 ---
 
